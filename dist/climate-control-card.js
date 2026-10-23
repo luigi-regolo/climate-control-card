@@ -2,7 +2,6 @@
  * Climate Control Card — custom Home Assistant dashboard card.
  * Copyright (c) 2026 luigi-regolo. SPDX-License-Identifier: GPL-3.0-only.
  * Local Home Assistant states/actions only. No telemetry, remote scripts, assets or credentials.
- * Development build — local validation required before publication.
  */
 (() => {
   'use strict';
