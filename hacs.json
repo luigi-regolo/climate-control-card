@@ -1,4 +1,5 @@
 {
   "name": "Climate Control Card",
-  "filename": "climate-control-card.js"
+  "filename": "climate-control-card.js",
+  "render_readme": true
 }
