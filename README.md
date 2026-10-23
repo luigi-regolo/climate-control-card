@@ -13,9 +13,11 @@ Its design follows the Edera Light and Graphite Dark styles. The card works with
 
 ## Preview
 
-![Climate Control Card preview — illustrative Home Assistant entities](assets/climate-control-card-preview.png)
+![Climate Control Card — heating and air conditioning](assets/climate-control-card-preview.png)
 
-*Screenshot provided by the project author. Displayed values and available controls depend on the configured Home Assistant entities and theme.*
+![Climate Control Card — operating times, radiator valves and automations](assets/climate-control-card-details.png)
+
+*Screenshots provided by the project author. Displayed values and available controls depend on the configured Home Assistant entities and theme.*
 
 ## Features
 
