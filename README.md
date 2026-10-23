@@ -11,6 +11,12 @@
 
 Its design follows the Edera Light and Graphite Dark styles. The card works with entities and actions provided by Home Assistant and does not require a dedicated account, paid API, telemetry service, or external JavaScript library.
 
+## Preview
+
+![Climate Control Card preview — illustrative Home Assistant entities](assets/climate-control-card-preview.png)
+
+*Screenshot provided by the project author. Displayed values and available controls depend on the configured Home Assistant entities and theme.*
+
 ## Features
 
 - **Modular layout:** Show heating, air conditioning, individual valves, or a custom combination of sections.
@@ -39,7 +45,7 @@ Available commands depend on the configured integration and device capabilities.
 5. Find **Climate Control Card** in HACS, open it, and select **Download**.
 6. Reload the dashboard if needed, then add **Climate Control Card** and configure it using the visual editor.
 
-HACS installs `dist/climate-control-card.js` from this repository. The card can be downloaded from the default branch without a published GitHub release.
+HACS installs `dist/climate-control-card.js` from this repository. You can install the default branch or a published release when available.
 
 ### Manual installation
 

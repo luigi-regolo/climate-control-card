@@ -1,0 +1,16 @@
+# Manual HACS validation; no scheduled runs or third-party paid services.
+name: Validate HACS
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  validate-hacs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: HACS validation
+        uses: hacs/action@main
+        with:
+          category: plugin
