@@ -22,7 +22,7 @@
   const bool = v => v === true;
   const list = (v,domains) => Array.isArray(v) ? v.map(x=>safe(x,domains)).filter(Boolean) : [];
   const defaults = Object.freeze({
-    type:`custom:${TAG}`, title:'Clima Casa', eyebrow:'CLIMATE CONTROL CARD', theme_mode:'auto', layout:'complete', temperature_control:'step',
+    type:`custom:${TAG}`, title:'Clima Casa', eyebrow:'CLIMATE CONTROL CARD', show_eyebrow:true, theme_mode:'auto', layout:'complete', temperature_control:'step',
     show_heat:true,show_ac:true,show_valves:true,show_stats:true,show_seasons:true,show_automations:true,
     controls_enabled:false, confirm_automation_disable:false,
     heat_entity:'', heat_schedule_entity:'',heat_preset_entity:'',heat_activity_entity:'',
@@ -39,7 +39,7 @@
   function normalize(raw={}) {
     const r=raw && typeof raw==='object'&&!Array.isArray(raw)?raw:{};
     const c={...defaults,...r};
-    c.title=txt(c.title,60)||defaults.title; c.eyebrow=txt(c.eyebrow,65)||defaults.eyebrow;
+    c.title=txt(c.title,60)||defaults.title; c.eyebrow=txt(c.eyebrow,65)||defaults.eyebrow; c.show_eyebrow=c.show_eyebrow!==false;
     c.theme_mode=THEMES.includes(c.theme_mode)?c.theme_mode:'auto';
     c.layout=MODES.includes(c.layout)?c.layout:'complete';
     c.temperature_control=['step','slider'].includes(c.temperature_control)?c.temperature_control:'step';
@@ -115,7 +115,7 @@
     .root{--cc-bg:#fff;--cc-panel:#F1F3EF;--cc-text:#19221E;--cc-muted:#68716C;--cc-border:#E3E7E2;--cc-green:var(--edera-emerald-color,#0E6B52);--cc-heat:var(--edera-heat-color,#C76F4F);--cc-cool:var(--edera-cool-color,#4F8193);--cc-heatbg:#F8F0EA;--cc-coolbg:#EBF2F3;--cc-heat-on:#F6E5DB;--cc-cool-on:#E0EDF0;--cc-off:#858E89;--cc-surface:#F6F7F3;
       color:var(--cc-text);background:var(--cc-bg);border:1px solid var(--cc-border);border-radius:26px;padding:17px 19px;min-width:0;container:climate/inline-size}
     .root.dark{--cc-bg:#101211;--cc-panel:#191c1a;--cc-text:#f5f7f4;--cc-muted:#bbc5bd;--cc-border:#2b302c;--cc-green:var(--edera-emerald-color,#0E6B52);--cc-heat:var(--edera-heat-color,#E28763);--cc-cool:var(--edera-cool-color,#6FA9C0);--cc-heatbg:#241d1a;--cc-coolbg:#1c272b;--cc-heat-on:#34241e;--cc-cool-on:#263740;--cc-off:#8B918E;--cc-surface:#191c1a}
-    .header{margin-bottom:13px}.eyebrow{font-size:10px;letter-spacing:1.7px;font-weight:750;color:var(--cc-muted)}.title{font-weight:780;letter-spacing:-.7px;font-size:25px;margin:6px 0 0;line-height:1.2}.title b{color:var(--cc-green)}
+    .header{margin-bottom:13px}.header.without-eyebrow .title{margin-top:0}.eyebrow{font-size:10px;letter-spacing:1.7px;font-weight:750;color:var(--cc-muted)}.title{font-weight:780;letter-spacing:-.7px;font-size:25px;margin:6px 0 0;line-height:1.2}.title b{color:var(--cc-green)}
     .heroes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:10px}.hero{border-radius:20px;border:1px solid var(--cc-border);background:var(--cc-panel);padding:13px 15px;min-width:0}
     .hero.heat{background:linear-gradient(135deg,var(--cc-panel),var(--cc-heatbg))}.hero.heat.is-active{background:linear-gradient(135deg,var(--cc-panel),var(--cc-heat-on))}
     .hero.ac{background:linear-gradient(135deg,var(--cc-panel),var(--cc-coolbg))}.hero.ac.is-active{background:linear-gradient(135deg,var(--cc-panel),var(--cc-cool-on))}
@@ -133,12 +133,84 @@
     .fold{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;text-align:left;background:var(--cc-panel);border:1px solid var(--cc-border);border-radius:14px;color:var(--cc-text);font-size:12px;font-weight:600;padding:12px 14px;min-height:54px}.fold .fold-label{display:inline-flex;align-items:center;gap:11px;min-width:0}.fold .fold-label ha-icon{width:19px;height:19px;--mdc-icon-size:19px;flex-shrink:0}.fold .fold-title{line-height:1.4}.fold .fold-tail{display:inline-flex;gap:9px;align-items:center;flex-shrink:0;color:var(--cc-muted);font-size:11px;font-weight:650}.fold .fold-tail ha-icon{width:17px;height:17px;--mdc-icon-size:17px;flex-shrink:0}.fold:hover{border-color:var(--cc-green)}.panel{border:1px solid var(--cc-border);border-radius:15px;background:var(--cc-panel);padding:12px 13px;margin-top:7px}.season-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.season-card{border:1px solid var(--cc-border);background:var(--cc-bg);border-radius:13px;padding:11px 12px}.season-card strong{font-size:13px}.metric{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0}.metric span{font-size:11px;color:var(--cc-muted)}.metric strong{font-size:15px;font-weight:650;font-variant-numeric:tabular-nums}.hint{font-size:11px;color:var(--cc-muted);line-height:1.5}.aut-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--cc-border)}.aut-row:last-child{border-bottom:0}.aut-row strong{font-size:12px;font-weight:600}.aut-row small{font-size:10px;color:var(--cc-muted);display:block;margin-top:3px}.switch{border:1px solid var(--cc-border);border-radius:999px;padding:5px;width:44px;background:var(--cc-panel);display:flex;justify-content:flex-start;flex:none}.switch.on{justify-content:flex-end;background:var(--cc-green);border-color:var(--cc-green)}.switch i{width:18px;height:18px;border-radius:50%;background:var(--cc-bg)}.footer{font-size:10px;color:var(--cc-muted);margin-top:12px}
     .backdrop{position:fixed;inset:0;z-index:9999;background:#000a;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top)) 14px max(16px,env(safe-area-inset-bottom));overscroll-behavior:none;touch-action:none}.dialog{width:min(420px,100%);max-height:min(84dvh,720px);border:1px solid var(--cc-border);border-radius:25px;background:var(--cc-bg);color:var(--cc-text);box-shadow:0 20px 70px #0007;display:flex;flex-direction:column;overflow:hidden;touch-action:auto}.root.dark .dialog{--cc-bg:#0E100F;--cc-panel:#191C1A;--cc-text:#F5F7F4;--cc-muted:#BBC5BD;--cc-border:#2B302C;--cc-green:#52B995;background:#0E100F;color:#F5F7F4}.dialog-head{display:flex;align-items:center;justify-content:space-between;padding:15px 18px 11px;gap:10px;background:var(--cc-bg);flex:none;border-bottom:1px solid var(--cc-border)}.dialog-head strong{font-size:17px;font-weight:650;display:block}.close{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--cc-panel);border:0;border-radius:50%;color:var(--cc-text);flex:none}.close ha-icon{--mdc-icon-size:18px;width:18px;height:18px}.dialog-body{padding:13px 18px 16px;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}.dialog .mode-grid button{min-height:52px;padding:10px 12px;border-radius:12px;background:var(--cc-bg);font-size:12px;overflow-wrap:anywhere}.dialog .mode-grid button:disabled{opacity:1;color:var(--cc-muted);cursor:not-allowed}.dialog .mode-grid button.active{background:#0E6B52;border-color:#0E6B52;color:#fff}.dialog .mode-grid button.active ha-icon{color:#fff}.dialog .dialog-note{font-size:11px;line-height:1.5;color:var(--cc-muted);margin:0 0 13px}.modal-block strong{font-weight:650}.modal-block{background:var(--cc-panel);border:1px solid var(--cc-border);border-radius:14px;padding:12px;margin-bottom:10px}.modal-block.setpoint-shell{background:transparent;border:0;padding:0;margin-bottom:10px}.modal-title{font-size:10px;letter-spacing:1.2px;font-weight:750;margin:13px 0 8px;color:var(--cc-muted)}.mode-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.mode-grid button{border:1px solid var(--cc-border);border-radius:10px;min-height:42px;padding:8px 4px;color:var(--cc-text);background:var(--cc-bg);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px}.mode-grid button.active{border-color:var(--cc-green);color:var(--cc-green)}.mode-grid ha-icon{width:14px;height:14px;--mdc-icon-size:14px}.modal-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.modal-stats div{background:var(--cc-panel);border:1px solid var(--cc-border);padding:10px 4px;text-align:center;border-radius:11px}.modal-stats strong{font-size:14px;font-weight:650;display:block}.modal-stats small{font-size:10px;color:var(--cc-muted)}.error{font-size:11px;color:#e16c5b;margin-top:9px}
     @container cc-host (max-width:430px){.root{padding:13px 14px}.big{font-size:29px}.zones{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.zone{padding:8px 9px;border-radius:14px}.zone-top{gap:4px}.zone-top ha-icon{width:16px;height:16px;--mdc-icon-size:16px}.zone-top .pill{font-size:9px;padding:5px 6px;line-height:1.2;white-space:normal;text-align:right;overflow-wrap:anywhere}.zone-name{font-size:12px;line-height:1.3;overflow-wrap:anywhere;margin:7px 0 3px}.zone-meta{font-size:10px;line-height:1.45;overflow-wrap:anywhere}.zone-bottom{gap:4px;flex-wrap:wrap;align-items:baseline;margin:9px 0 9px;margin-top:auto}.zone-bottom strong{font-size:19px}.zone-bottom small{font-size:9px}.details{font-size:10px;gap:4px;padding:9px 7px;min-height:38px;line-height:1.2}.details ha-icon{width:14px;height:14px;--mdc-icon-size:14px;flex:none}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat strong{font-size:20px}.season-cards{grid-template-columns:1fr}.hero-main{margin:11px 0}.orb{height:58px;width:58px}}@container cc-host (max-width:330px){.stats{grid-template-columns:1fr}.mode-grid{grid-template-columns:1fr}}
+
+/* Compact tablet dashboard; expandable secondary content on every viewport. */
+.accordion-list{margin-top:13px;display:grid;gap:7px}
+.accordion-item{min-width:0}
+.accordion-head{display:flex;align-items:center;width:100%;min-height:52px;padding:10px 13px;gap:11px;text-align:left;background:var(--cc-panel);color:var(--cc-text);border:1px solid var(--cc-border);border-radius:13px;transition:border-color .15s ease,background .15s ease}
+.accordion-head:hover,.accordion-head[aria-expanded="true"]{border-color:var(--cc-green)}
+.acc-leading{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;background:var(--cc-bg);border:1px solid var(--cc-border);color:var(--cc-muted);flex:none}
+.acc-leading ha-icon{width:17px;height:17px;--mdc-icon-size:17px}
+.acc-label{flex:1;display:block;min-width:0}
+.acc-title{display:block;font-size:12px;font-weight:700;letter-spacing:.01em;line-height:1.35}
+.acc-summary{font-size:10px;color:var(--cc-muted);font-weight:500;line-height:1.3;margin-top:3px;display:block}
+.acc-end{display:flex;align-items:center;gap:8px;color:var(--cc-muted);font-size:10px;font-weight:600;white-space:nowrap}
+.acc-end ha-icon{width:17px;height:17px;--mdc-icon-size:17px}
+.acc-panel{margin-top:5px;padding:13px;border:1px solid var(--cc-border);border-radius:14px;background:var(--cc-surface);min-width:0}
+.acc-panel[hidden]{display:none}
+.acc-panel > section.section{margin-top:0}
+.acc-panel > section.section > h3.section-title{display:none}
+.acc-panel > section.section > .section-row > h3.section-title{display:none}
+.acc-panel > section.section > .section-row:first-child{justify-content:flex-start}
+.acc-panel > section.section > button.fold{display:none}
+.acc-panel > section.section > .panel{margin-top:0}
+.acc-panel > section.section > .panel > .panel{background:var(--cc-bg)}
+.acc-panel .zones{grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))}
+.acc-panel .stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+@container cc-host (min-width:620px){
+  /* Matching two-column heroes: identical outer heights and Preset baselines. */
+  .heroes{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+  .hero{display:flex;flex-direction:column;min-width:0;height:100%}
+  .hero-main{min-height:62px;margin:10px 0 12px}
+  .hero > .setpoint{min-height:56px}
+  .hero > .small-program{margin-top:auto;padding-top:11px}
+  .hero > .inline-options{gap:5px;margin-top:9px}
+  .hero > .inline-options .option{padding:6px 7px;font-size:10px;gap:5px;min-height:32px}
+  .hero > .inline-options .option ha-icon{width:14px;height:14px;--mdc-icon-size:14px}
+  .hero > .inline-options .power{min-height:32px;min-width:32px}
+  .hero .orb{height:55px;width:55px;border-width:6px}
+  .hero .orb ha-icon{width:25px;height:25px;--mdc-icon-size:25px}
+  .accordion-head{min-height:50px}
+}
+@container cc-host (min-width:790px){
+  .hero.ac > .inline-options{flex-wrap:nowrap;gap:4px}
+  .hero.ac > .inline-options .option{font-size:9px;gap:4px;padding:5px;min-height:32px;flex-shrink:0}
+  .hero.ac > .inline-options .power{margin-left:auto;min-width:30px;min-height:32px;flex-shrink:0}
+}
+@container cc-host (min-width:620px) and (max-width:920px){
+  .root{padding:14px 16px;border-radius:23px}
+  .header{margin-bottom:12px}
+  .title{font-size:23px}
+  .hero{padding:13px;border-radius:17px}
+  .kicker{font-size:9px;letter-spacing:.8px}
+  .pill{font-size:9px;padding:5px 7px}
+  .hero .big{font-size:28px}
+}
+@container cc-host (max-width:619px){
+  .heroes{grid-template-columns:1fr;gap:8px}
+  .hero{padding:12px 13px;border-radius:17px}
+  .hero-main{margin:10px 0}
+  .hero .orb{width:54px;height:54px;border-width:5px}
+  .hero .orb ha-icon{width:23px;height:23px;--mdc-icon-size:23px}
+  .section{margin-top:12px}
+  .accordion-list{margin-top:11px;gap:7px}
+  .accordion-head{min-height:50px;padding:8px 10px;gap:10px}
+  .acc-leading{width:31px;height:31px}
+  .acc-end{font-size:10px}
+  .acc-panel{padding:10px}
+}
+@container cc-host (max-width:430px){
+  .acc-panel .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .acc-panel .zones{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .acc-title{font-size:11px}
+  .acc-summary{font-size:9px}
+}
     @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
   `;
   class ClimateControlCard extends HTMLElement {
     constructor(){
       super();this.attachShadow({mode:'open'});this._cfg=normalize();this._hass=null;
-      this._period=0;this._season='winter';this._seasonOpen=false;this._autoOpen=false;this._modal=null;
+      this._period=0;this._season='winter';this._seasonOpen=false;this._autoOpen=false;this._accOpen={valves:false,times:false,seasons:false,automations:false};this._modal=null;
       this._pending=new Set();this._overrides=new Map();this._lastAcModes=new Map();this._error='';this._lock=null;this._sig='';
       this._media=typeof matchMedia==='function'?matchMedia('(prefers-color-scheme: dark)'):null;
       this._onKey=e=>{if(e.key==='Escape'&&this._modal)this._close()};
@@ -327,21 +399,33 @@
     }
     _currentSig(){
       const c=this._cfg,h=this._hass,keys=[c.heat_entity,c.heat_schedule_entity,c.heat_preset_entity,c.heat_activity_entity,c.ac_entity,c.ac_program_entity,c.ac_activity_entity,...Object.keys(c).filter(k=>/_(today|week|month|last|previous)$/.test(k)).map(k=>c[k]),...c.valves.flatMap(v=>[v.entity,v.activity_entity,v.today,v.week,v.month]),...c.automations.map(a=>a.entity)];
-      return JSON.stringify({c,dark:this._dark(),p:this._period,season:this._season,so:this._seasonOpen,ao:this._autoOpen,modal:this._modal,err:this._error,pending:[...this._pending],override:[...this._overrides],data:[...new Set(keys.filter(Boolean))].map(id=>{const e=h.states[id];return [id,e?.state,e?.attributes?.temperature,e?.attributes?.current_temperature,e?.attributes?.hvac_action,e?.attributes?.hvac_modes,e?.attributes?.options,e?.attributes?.preset_modes,e?.attributes?.preset_mode,e?.attributes?.unit_of_measurement,e?.attributes?.friendly_name]})});
+      return JSON.stringify({c,dark:this._dark(),p:this._period,season:this._season,so:this._seasonOpen,ao:this._autoOpen,acc:this._accOpen,modal:this._modal,err:this._error,pending:[...this._pending],override:[...this._overrides],data:[...new Set(keys.filter(Boolean))].map(id=>{const e=h.states[id];return [id,e?.state,e?.attributes?.temperature,e?.attributes?.current_temperature,e?.attributes?.hvac_action,e?.attributes?.hvac_modes,e?.attributes?.options,e?.attributes?.preset_modes,e?.attributes?.preset_mode,e?.attributes?.unit_of_measurement,e?.attributes?.friendly_name]})});
+    }
+    _accordionTile(id,title,summary,iconName,body){
+      const open=!!this._accOpen[id];
+      return `<div class="accordion-item"><button type="button" class="accordion-head" id="cc-head-${id}" data-action="toggle-accordion" data-section="${id}" aria-expanded="${open}" aria-controls="cc-panel-${id}"><span class="acc-leading">${icon(iconName)}</span><span class="acc-label"><span class="acc-title">${esc(title)}</span><span class="acc-summary">${esc(summary)}</span></span><span class="acc-end">${open?'Chiudi':'Apri'} ${icon(open?'chevron-up':'chevron-right')}</span></button><div class="acc-panel" id="cc-panel-${id}" role="region" aria-labelledby="cc-head-${id}" ${open?'':'hidden'}>${open?body:''}</div></div>`;
     }
     _render(){if(!this.isConnected||!this._hass)return;
       const c=this._cfg;
       const sig=this._currentSig();
       if(sig===this._sig)return;this._sig=sig;
       const scroll=this.shadowRoot.querySelector('.dialog-body')?.scrollTop||0;const outerScroll=this._outerScroll();
-      let html=`<style>${CSS}</style><div class="root ${this._dark()?'dark':''}"><header class="header"><div class="eyebrow">${esc(c.eyebrow)}</div><h2 class="title">${esc(c.title)}<b>.</b></h2></header>`;
+      let html=`<style>${CSS}</style><div class="root ${this._dark()?'dark':''}"><header class="header ${c.show_eyebrow?'':'without-eyebrow'}">${c.show_eyebrow?`<div class="eyebrow">${esc(c.eyebrow)}</div>`:''}<h2 class="title">${esc(c.title)}<b>.</b></h2></header>`;
       const heroes=[isShown(c,'heat')&&(c.heat_entity||c.heat_schedule_entity||c.heat_preset_entity)?this._heating():'',isShown(c,'ac')&&c.ac_entity?this._aircon():''].filter(Boolean);
       if(heroes.length)html+=`<div class="heroes">${heroes.join('')}</div>`;
       if(!heroes.length&&!(isShown(c,'valves')&&c.valves.length))html+=`<p class="hint">Configura almeno un termostato, un programma, un climatizzatore o una valvola nell'editor visuale.</p>`;
-      if(isShown(c,'stats'))html+=this._stats();
-      if(isShown(c,'valves'))html+=this._valves();
-      if(isShown(c,'seasons'))html+=this._seasons();
-      if(isShown(c,'automations'))html+=this._automations();
+      const accordion=[];
+      if(isShown(c,'valves')&&c.valves.length)accordion.push(this._accordionTile('valves','Valvole termostatiche',`${c.valves.length} valvole configurate`,'radiator',this._accOpen.valves?this._valves():''));
+      if(isShown(c,'stats')){
+        const stats=this._stats();
+        if(stats)accordion.push(this._accordionTile('times','Tempi di funzionamento','Oggi · Settimana · Mese','chart-bar',this._accOpen.times?stats:''));
+      }
+      if(isShown(c,'seasons')){
+        const seasons=this._seasons();
+        if(seasons)accordion.push(this._accordionTile('seasons','Dettagli e statistiche','Confronti stagionali','chart-bar',this._accOpen.seasons?seasons:''));
+      }
+      if(isShown(c,'automations'))accordion.push(this._accordionTile('automations',`Automazioni associate (${c.automations.length})`,'Gestisci le automazioni Home Assistant','cog-outline',this._accOpen.automations?this._automations():''));
+      if(accordion.length)html+=`<div class="accordion-list" aria-label="Sezioni espandibili">${accordion.join('')}</div>`;
       if(!c.controls_enabled)html+='<p class="footer">Modalità sola lettura: abilita i comandi nell’editor quando hai verificato le entità.</p>';
       if(this._error&&!this._modal)html+=`<p class="main-error" role="alert">${esc(this._error)}</p>`;
       html+=(this._modal?this._popup():'')+'</div>';
@@ -373,6 +457,16 @@
     }
     _click(e){const el=e.target.closest('button[data-action]');if(!el){if(e.target.dataset?.backdrop)this._close();return;}
       const a=el.dataset.action,i=Number(el.dataset.index),id=el.dataset.id,value=el.dataset.value;
+      if(a==='toggle-accordion'){
+        const key=el.dataset.section;
+        if(!Object.prototype.hasOwnProperty.call(this._accOpen,key))return;
+        this._accOpen[key]=!this._accOpen[key];
+        if(key==='seasons')this._seasonOpen=this._accOpen[key];
+        if(key==='automations')this._autoOpen=this._accOpen[key];
+        this._sig='';this._render();
+        this.shadowRoot.querySelector(`button[data-action="toggle-accordion"][data-section="${key}"]`)?.focus({preventScroll:true});
+        return;
+      }
       if(a==='close'){this._close();return;}if(a==='period'){this._period=i;this._refreshPeriod();this._sig=this._currentSig();return;}
       if(a==='toggle-seasons'){this._seasonOpen=!this._seasonOpen;this._refreshFold('toggle-seasons');this._sig=this._currentSig();return;}
       if(a==='season'){this._season=value;this._refreshFold('toggle-seasons');this._sig=this._currentSig();return;}
@@ -522,7 +616,7 @@
       return out;
     }
     _automations(){const c=this._cfg;return `<h3>Automazioni associate</h3><p class="note">Aggiungi liberamente le automazioni. Se il nome personalizzato è vuoto, la card usa il nome originale di Home Assistant.</p>${c.automations.map((a,i)=>`<div class="block"><div class="blockhead"><strong>${esc(a.name||friendly(this._hass,a.entity,`Automazione ${i+1}`))}</strong><button class="delete" data-remove="automations:${i}">${icon('delete-outline')} Rimuovi</button></div>${this._entity(`automations:${i}:entity`,'Entità automazione',['automation'])}${this._text(`automations:${i}:name`,'Nome personalizzato (facoltativo)','Lascia vuoto per usare il friendly_name di Home Assistant.')}</div>`).join('')}<button class="add" data-add="automations">${icon('plus')} Aggiungi automazione</button>`}
-    _appearance(){return `<h3>Identità Edera</h3>${this._text('eyebrow','Intestazione superiore')}${this._text('title','Titolo card')}${this._select('theme_mode','Tema',[['auto','Automatico · Home Assistant'],['light','Edera Light'],['dark','Graphite Dark']])}
+    _appearance(){return `<h3>Identità Edera</h3>${this._check('show_eyebrow','Mostra intestazione superiore','Se disattivata rimane visibile soltanto il titolo principale con il punto.')}${this._cfg.show_eyebrow?this._text('eyebrow','Testo intestazione superiore'):''}${this._text('title','Titolo card')}${this._select('theme_mode','Tema',[['auto','Automatico · Home Assistant'],['light','Edera Light'],['dark','Graphite Dark']])}
       ${this._select('layout','Modalità della card',[['complete','Completa'],['heat','Solo riscaldamento'],['ac','Solo climatizzatore'],['valves','Solo valvole'],['custom','Personalizzata']])}
       ${this._select('temperature_control','Regolazione temperatura',[['step','Pulsanti − / +'],['slider','Slider temperatura']])}
       <h3>Sezioni visibili</h3>${[['heat','Riscaldamento'],['ac','Climatizzatore'],['valves','Valvole'],['stats','Tempi di funzionamento'],['seasons','Dettagli e statistiche'],['automations','Automazioni associate']].map(([k,n])=>this._check(`show_${k}`,n)).join('')}<p class="note">Le modalità Solo riscaldamento, Solo climatizzatore e Solo valvole nascondono automaticamente i dispositivi non pertinenti.</p>`;
