@@ -1,8 +1,8 @@
 # Climate Control Card
 
-[![TikTok | Segui](assets/tiktok-segui.svg)](https://www.tiktok.com/@Luigi.regolo)
+[![HACS Default](https://img.shields.io/badge/HACS-Default-41BDF5?style=flat-square)](https://my.home-assistant.io/redirect/hacs_repository/?owner=luigi-regolo&repository=climate-control-card&category=plugin)
+[![Release](https://img.shields.io/github/v/release/luigi-regolo/climate-control-card?label=Release&style=flat-square)](https://github.com/luigi-regolo/climate-control-card/releases/latest)
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue?style=flat-square)](LICENSE)
-[![HACS Repository](https://img.shields.io/badge/HACS-Repository-41BDF5?style=flat-square)](https://my.home-assistant.io/redirect/hacs_repository/?owner=luigi-regolo&repository=climate-control-card&category=plugin)
 [![GitHub Stars](https://img.shields.io/github/stars/luigi-regolo/climate-control-card?style=flat-square)](https://github.com/luigi-regolo/climate-control-card/stargazers)
 
 ## Overview
@@ -13,11 +13,13 @@ Its design follows the Edera Light and Graphite Dark styles. The card works with
 
 ## Preview
 
-![Climate Control Card — heating and air conditioning](assets/climate-control-card-preview.png)
+| Light | Dark |
+| --- | --- |
+| ![Climate Control Card in Light mode](assets/climate-control-card-light.png) | ![Climate Control Card in Dark mode](assets/climate-control-card-dark.png) |
 
-![Climate Control Card — operating times, radiator valves and automations](assets/climate-control-card-details.png)
+![Climate Control Card with radiator valves and operating times expanded, Dark mode](assets/climate-control-card-details-dark.png)
 
-*Screenshots provided by the project author. Displayed values and available controls depend on the configured Home Assistant entities and theme.*
+*Previews use fictional demo data. Displayed values and available controls depend on the configured Home Assistant entities and theme. The interface text is currently in Italian.*
 
 ## Features
 
@@ -35,19 +37,29 @@ Available commands depend on the configured integration and device capabilities.
 
 ## Installation
 
-### HACS — Custom repository
+### HACS (Recommended)
 
-1. In Home Assistant, open **HACS**.
-2. Open the three-dot menu and select **Custom repositories**.
-3. Enter the repository URL:
+Install Climate Control Card directly from the default HACS catalog.
 
-   `https://github.com/luigi-regolo/climate-control-card`
+[![Open Climate Control Card in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=luigi-regolo&repository=climate-control-card&category=plugin)
 
-4. Choose **Dashboard** as the repository type and select **Add**.
-5. Find **Climate Control Card** in HACS, open it, and select **Download**.
-6. Reload the dashboard if needed, then add **Climate Control Card** and configure it using the visual editor.
+1. Open **HACS** in Home Assistant.
+2. Search for **Climate Control Card**.
+3. Select **Climate Control Card** from the results.
+4. Click **Download** to install the card.
+5. Reload your dashboard if necessary.
+6. Add **Climate Control Card** to your dashboard and configure it using the visual editor.
 
-HACS installs `dist/climate-control-card.js` from this repository. You can install the default branch or a published release when available.
+To install a specific release, use **Download** or **Redownload** and select the desired version when available.
+
+### Alternative: Custom repository
+
+If you prefer to add the repository manually:
+
+1. Open **HACS** and select **Custom repositories** from the menu.
+2. Enter `https://github.com/luigi-regolo/climate-control-card`.
+3. Select **Dashboard** as the repository type and add it.
+4. Find **Climate Control Card** in HACS and download it.
 
 ### Manual installation
 
@@ -93,6 +105,10 @@ The illustrative next-season scenario, when available, is an average of two conf
 - Only device commands and modes actually exposed by the relevant Home Assistant integration are available.
 
 A minimum supported Home Assistant version has not yet been independently validated. Edera is a design reference, not a required theme dependency.
+
+## Releases
+
+See [GitHub Releases](https://github.com/luigi-regolo/climate-control-card/releases) for published versions.
 
 ## Copyright & License
 
