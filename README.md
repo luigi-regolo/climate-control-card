@@ -19,19 +19,22 @@ Its design follows the Edera Light and Graphite Dark styles. The card works with
 
 ![Climate Control Card with radiator valves and operating times expanded, Dark mode](assets/climate-control-card-details-dark.png)
 
+![Climate Control Card Preset dialog for the air conditioner, Light mode](assets/climate-control-card-popup-light.png)
+
 *Previews use fictional demo data. Displayed values and available controls depend on the configured Home Assistant entities and theme. The interface text is currently in Italian.*
 
 ## Features
 
 - **Modular layout:** Show heating, air conditioning, individual valves, or a custom combination of sections.
-- **Climate control:** Display current temperatures and target temperatures, adjust supported setpoints, and select available HVAC modes and presets.
+- **Climate control:** Display the room temperature and adjust the supported setpoint with a draggable arc (default) or a ring with − and + buttons. Turn the air conditioner on or off from its status badge, and choose available HVAC modes and presets from the **Preset** dialog.
+- **Last values remembered:** The last set temperature and the last air-conditioner mode are kept in the browser, so the card can show them and restore them when the air conditioner is turned back on. Values reported by Home Assistant always take precedence.
 - **Thermostat schedules:** View and choose the actual options exposed by a configured `select.*` entity, without predefined schedule names.
 - **Individual valves:** Adjust target temperatures, turn valves off where supported, and restore scheduled operation when a compatible restoration method is configured.
 - **Operating-time summaries:** Display today, this week, and this month using the configured duration sensors for heating, air conditioning, and individual valves.
 - **Seasonal comparisons:** Configure winter and summer months and compare available historical heating or cooling totals. An optional future scenario is clearly labeled as illustrative.
 - **Automations:** Add any number of existing `automation.*` entities, enable or disable them, and optionally assign display names. Home Assistant's friendly name is used when no custom name is provided.
-- **Visual editor:** Find, select, replace, or remove entities using Home Assistant selectors; customize displayed sections, titles, temperature controls, and appearance.
-- **Edera appearance:** Automatic, Light, and Graphite Dark modes, native Home Assistant Material Design Icons, compact detail dialogs, and responsive layouts.
+- **Visual editor:** Find, select, replace, or remove entities using Home Assistant selectors; customize displayed sections, the card name and title (each can be hidden), the temperature control style, and appearance.
+- **Edera appearance:** Automatic, Light, and Graphite Dark modes, native Home Assistant Material Design Icons, compact detail dialogs, and layouts optimized for phones, tablets, and desktops.
 
 Available commands depend on the configured integration and device capabilities. A target temperature does not, by itself, confirm that a physical valve is open or that a heat source is running. Information that is not available is not estimated.
 
@@ -77,10 +80,10 @@ The editor provides **Devices**, **Statistics**, **Automations**, **Appearance**
 - **Devices:** Select the thermostat, air conditioner, optional schedule selectors, and individual radiator valves. Add, remove, or rename configured valves.
 - **Statistics:** Select the duration sensors for each period and configure winter/summer months and historical seasonal totals.
 - **Automations:** Add or remove existing automations. Leave the custom name blank to display its Home Assistant name.
-- **Appearance:** Customize the upper heading, card title, Edera theme, visible sections, and temperature adjustment style.
-- **Advanced:** Review optional controls and enable real commands only after validating the configured entities.
+- **Appearance:** Show or hide the upper card name and the card title, choose the Edera theme, visible sections, and the temperature control style (arc or ring).
+- **Advanced:** Review optional controls and turn real commands off if you want a read-only card.
 
-Real commands are **disabled by default** and require explicit activation in the editor. The card uses Home Assistant actions and permissions; it does not bypass device or platform safeguards.
+Real commands are **enabled by default**. Turn them off in the editor (or set `controls_enabled: false`) to use the card as read-only. YAML configurations created before this version that do not contain `controls_enabled` will start sending commands after the update. The card uses Home Assistant actions and permissions; it does not bypass device or platform safeguards.
 
 ### Valve controls and schedules
 
