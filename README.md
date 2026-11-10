@@ -21,7 +21,7 @@ Its design follows the Edera Light and Graphite Dark styles. The card works with
 
 ![Climate Control Card Preset dialog for the air conditioner, Light mode](assets/climate-control-card-popup-light.png)
 
-*Previews use fictional demo data. Displayed values and available controls depend on the configured Home Assistant entities and theme. The interface text is currently in Italian.*
+*Previews use fictional demo data. Displayed values and available controls depend on the configured Home Assistant entities and theme.*
 
 ## Features
 
@@ -35,6 +35,7 @@ Its design follows the Edera Light and Graphite Dark styles. The card works with
 - **Automations:** Add any number of existing `automation.*` entities, enable or disable them, and optionally assign display names. Home Assistant's friendly name is used when no custom name is provided.
 - **Visual editor:** Find, select, replace, or remove entities using Home Assistant selectors; customize displayed sections, the card name and title (each can be hidden), the temperature control style, and appearance.
 - **Edera appearance:** Automatic, Light, and Graphite Dark modes, native Home Assistant Material Design Icons, compact detail dialogs, and layouts optimized for phones, tablets, and desktops.
+- **Languages:** The card and its visual editor are available in Italian, English and Polish. The language follows the Home Assistant profile language; any other language falls back to English. Numbers, times and month names use the same locale.
 
 Available commands depend on the configured integration and device capabilities. A target temperature does not, by itself, confirm that a physical valve is open or that a heat source is running. Information that is not available is not estimated.
 

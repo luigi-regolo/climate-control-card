@@ -9,7 +9,6 @@
   const EDITOR = `${TAG}-editor`;
   const MODES = ['complete','heat','ac','valves','custom'];
   const THEMES = ['auto','light','dark'];
-  const MONTHS = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
   const ENTITY_RX = /^(climate|select|sensor|binary_sensor|switch|automation|script|input_boolean)\.[a-z0-9_]+$/;
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const safe = (v, domains) => { const s = String(v ?? '').trim(); return ENTITY_RX.test(s) && domains.includes(s.split('.')[0]) ? s : ''; };
@@ -17,10 +16,170 @@
   const icon = (mdi) => `<ha-icon icon="mdi:${mdi}" aria-hidden="true"></ha-icon>`;
   const valid = e => !!e && !['unknown','unavailable',''].includes(e.state);
   const num = v => (v === null || v === undefined || String(v).trim() === '' || !Number.isFinite(Number(v))) ? null : Number(v);
-  const temp = (n,unit='°C') => Number.isFinite(n) ? `${n.toLocaleString('it-IT',{minimumFractionDigits:1,maximumFractionDigits:1})}${esc(unit)}` : 'N/D';
+  const temp = (n,unit='°C') => Number.isFinite(n) ? `${n.toLocaleString(LOCALE,{minimumFractionDigits:1,maximumFractionDigits:1})}${esc(unit)}` : tr('na');
   const clip = (v,min,max) => Math.min(max,Math.max(min,v));
   const bool = v => v === true;
   const list = (v,domains) => Array.isArray(v) ? v.map(x=>safe(x,domains)).filter(Boolean) : [];
+  const I18N = {
+    it:{
+      months:'Gen,Feb,Mar,Apr,Mag,Giu,Lug,Ago,Set,Ott,Nov,Dic',na:'N/D',unavailable:'Non disponibile',running:'In funzione',cooling:'Raffreddamento',idle:'In attesa',off:'Spento',on:'Acceso',
+      preset_away:'Assente',preset_frost_guard:'Antigelo',preset_schedule:'Programmazione',preset_boost:'Boost',
+      setpoint_temp:'Temperatura impostata',temp_down:'Diminuisci temperatura',temp_up:'Aumenta temperatura',set_caps:'IMPOSTATA',
+      heating_caps:'RISCALDAMENTO',ambient:'Ambiente',heat_preset_aria:'Preset riscaldamento',preset:'Preset',ac_turn_off:'Spegni climatizzatore',ac_turn_on:'Accendi climatizzatore',ac_caps:'CLIMATIZZATORE',ac_preset_aria:'Preset climatizzatore',
+      active_valves:'Valvole attive',heat_demand_now:'Richiesta calore · ora',heating:'Riscaldamento',sensor_duration:'Durata dal sensore',ac:'Climatizzatore',
+      runtime_caps:'TEMPI DI FUNZIONAMENTO',today:'Oggi',week:'Settimana',month:'Mese',valves_caps:'VALVOLE TERMOSTATICHE',valve_n:'Valvola {n}',details_status:'Dettagli e stato',
+      winter:'Inverno',summer:'Estate',season_compare_caps:'CONFRONTO PER STAGIONE',times:'Tempi',seasons:'Stagioni',
+      automation_n:'Automazione {n}',enabled:'Abilitata',disabled:'Disabilitata',aut_enable:'Abilita automazione',aut_disable:'Disabilita automazione',aut_hint:"Configura automazioni nell'editor della card.",
+      ambient_temp:'Temperatura ambiente',state:'Stato',valve_mgmt_caps:'GESTIONE VALVOLA',manual:'Manuale',turn_off:'Spegni',schedule:'Programma',ov_manual:'Manuale',ov_off:'Spenta',ov_schedule:'Programma',
+      last_cmd:'Ultimo comando dalla card: {mode} ({time})',valve_hint:'Modalità manuale e stato del programma dipendono dall’integrazione configurata.',runtime1_caps:'TEMPO DI FUNZIONAMENTO',
+      valve_demand_hint:"La richiesta di calore non coincide necessariamente con l'apertura fisica della valvola. I tempi sono quelli dei sensori selezionati.",
+      preset_caps:'PRESET',in_use:'In uso',schedule_caps:'PROGRAMMA',no_schedule:'Nessun programma disponibile.',modes_caps:'MODALITÀ',
+      heat_modes_hint:'Le modalità disponibili dipendono dall’entità termostato configurata.',
+      heat_modes_missing:'Per visualizzare Assente e le altre modalità, seleziona nell’editor un’entità climate.* che esponga tali preset. I programmi select.* non includono necessariamente Assente.',
+      hvac_cool:'Freddo',hvac_heat:'Caldo',hvac_dry:'Deum.',hvac_auto:'Auto',hvac_fan_only:'Ventola',hvac_heat_cool:'Auto caldo/freddo',
+      close:'Chiudi',open:'Apri',empty_hint:"Configura almeno un termostato, un programma, un climatizzatore o una valvola nell'editor visuale.",
+      valves_title:'Valvole termostatiche',valves_configured:'{n} valvole configurate',stats:'Statistiche',stats_both:'Tempi · Confronto stagionale',runtime:'Tempi di funzionamento',season_compare:'Confronto stagionale',
+      linked_automations:'Automazioni associate',manage_automations:'Gestisci le automazioni Home Assistant',sections_aria:'Sezioni espandibili',
+      readonly_footer:'Modalità sola lettura: abilita i comandi nell’editor quando hai verificato le entità.',no_source:'Nessuna sorgente disponibile per questa modalità.',no_months:'Nessun mese selezionato',
+      winter_heating:'Inverno · Riscaldamento',summer_ac:'Estate · Climatizzatore',prev_season:'Stagione precedente',last_season:'Ultima stagione',next_scenario:'Scenario successivo',
+      next_scenario_title:'Scenario illustrativo: media delle ultime due stagioni, non previsione meteorologica',
+      action_unavailable:'Azione {action} non disponibile',cmd_failed:'Comando non riuscito.',no_power_mode:'Nessuna modalità di accensione supportata.',confirm_disable:"Disabilitare l'automazione “{name}”?",stub_title:'Clima Casa',
+      entity_placeholder:'Seleziona o cerca entità',remove_entity:'Rimuovi entità',tab_devices:'Dispositivi',tab_stats:'Statistiche',tab_automations:'Automazioni',tab_appearance:'Aspetto',tab_advanced:'Avanzate',
+      devices_note:'Scegli le entità realmente presenti in Home Assistant. Puoi rimuoverle singolarmente.',valves:'Valvole',
+      heat_schedule_label:'Programmi del termostato · select.*',heat_schedule_hint:'Seleziona qui l’entità dei programmi, anche se non hai un termostato climate.*. Le opzioni vengono lette da Home Assistant.',
+      heat_preset_label:'Modalità termostato (es. Assente) · climate.*',heat_preset_hint:'Facoltativo. Scegli un’entità dello stesso impianto che esponga i preset (away, schedule, frost_guard). I comandi possono interessare l’intera abitazione, secondo l’integrazione.',
+      heat_entity_label:'Termostato temperatura (facoltativo) · climate.*',heat_entity_hint:'Se presente, mostra temperatura ambiente, setpoint e stato HVAC. Non inserire qui un’entità select.*.',
+      heat_activity_label:'Stato riscaldamento / richiesta calore (facoltativo)',heat_activity_hint:'Non rappresenta automaticamente l’accensione della caldaia.',
+      ac_program_label:'Programma climatizzatore (facoltativo)',ac_program_hint:'Seleziona solo una vera entità di programma, se esiste.',ac_activity_label:'Sensore funzionamento climatizzatore (facoltativo)',
+      remove:'Rimuovi',valve_entity:'Entità valvola',valve_name:'Nome nella card (facoltativo)',valve_name_hint:'Se vuoto, viene usato il nome assegnato in Home Assistant.',valve_activity:'Richiesta calore (facoltativo)',
+      restore_label:'Ripristina programma',restore_none:'Non configurato',restore_netatmo:'Azione Netatmo (per dispositivi compatibili)',restore_script:'Script Home Assistant personalizzato',
+      restore_hint:'Seleziona esplicitamente il metodo compatibile con il tuo impianto.',restore_script_label:'Script ripristino',time_today:'Tempo oggi',time_week:'Tempo settimana',time_month:'Tempo mese',add_valve:'Aggiungi valvola',
+      runtime_note:'I sensori devono misurare la durata effettiva, con unità di tempo esplicita (h, min o s). Nessun valore viene inventato.',
+      seasons_title:'Confronti stagionali',seasons_note:'Scegli i mesi di Inverno ed Estate. Configura sensori aggregati storici se disponibili.',hours_prev:'Ore stagione precedente',hours_last:'Ore ultima stagione',
+      scenario_note:'Scenario successivo: calcolato solo se entrambi i dati sono disponibili. La scelta dei mesi definisce il periodo; per le statistiche storiche occorrono comunque dati già aggregati per quei mesi.',
+      aut_note:'Aggiungi liberamente le automazioni. Se il nome personalizzato è vuoto, la card usa il nome originale di Home Assistant.',aut_entity:'Entità automazione',aut_name:'Nome personalizzato (facoltativo)',
+      aut_name_hint:'Lascia vuoto per usare il friendly_name di Home Assistant.',add_automation:'Aggiungi automazione',
+      identity:'Identità Edera',show_eyebrow_label:'Mostra intestazione superiore',show_eyebrow_hint:'Se disattivata rimane visibile soltanto il titolo principale con il punto.',eyebrow_text:'Testo intestazione superiore',
+      show_title_label:'Mostra titolo card',show_title_hint:'Se disattivata il titolo e il punto verde non vengono mostrati.',title_label:'Titolo card',theme:'Tema',theme_auto:'Automatico · Home Assistant',
+      layout_label:'Modalità della card',layout_complete:'Completa',layout_heat:'Solo riscaldamento',layout_ac:'Solo climatizzatore',layout_valves:'Solo valvole',layout_custom:'Personalizzata',
+      temp_control:'Regolazione temperatura',ctrl_arc:'Arco con − / +',ctrl_ring:'Anello con − / +',visible_sections:'Sezioni visibili',
+      show_heat:'Riscaldamento',show_ac:'Climatizzatore',show_valves:'Valvole',show_stats:'Statistiche · Tempi di funzionamento',show_seasons:'Statistiche · Confronto stagionale',show_automations:'Automazioni associate',
+      layout_note:'Le modalità Solo riscaldamento, Solo climatizzatore e Solo valvole nascondono automaticamente i dispositivi non pertinenti.',
+      controls_title:'Controlli e sicurezza',controls_enabled_label:'Abilita comandi reali',controls_enabled_hint:'Attivo per impostazione predefinita. Disattivalo per usare la card in sola lettura.',
+      confirm_disable_label:'Conferma prima di disabilitare automazioni',
+      advanced_note:'La card non concede permessi aggiuntivi rispetto a Home Assistant. Il ripristino del programma delle valvole usa il metodo configurato individualmente; se assente, il pulsante non invia comandi.',
+      card_description:'Termostati, climatizzatori, valvole, programmi e statistiche nello stile Edera.'
+    },
+    en:{
+      months:'Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec',na:'N/A',unavailable:'Unavailable',running:'Running',cooling:'Cooling',idle:'Idle',off:'Off',on:'On',
+      preset_away:'Away',preset_frost_guard:'Frost guard',preset_schedule:'Schedule',preset_boost:'Boost',
+      setpoint_temp:'Target temperature',temp_down:'Decrease temperature',temp_up:'Increase temperature',set_caps:'TARGET',
+      heating_caps:'HEATING',ambient:'Room',heat_preset_aria:'Heating preset',preset:'Preset',ac_turn_off:'Turn off air conditioner',ac_turn_on:'Turn on air conditioner',ac_caps:'AIR CONDITIONER',ac_preset_aria:'Air conditioner preset',
+      active_valves:'Active valves',heat_demand_now:'Heat demand · now',heating:'Heating',sensor_duration:'Duration from sensor',ac:'Air conditioner',
+      runtime_caps:'RUNTIME',today:'Today',week:'Week',month:'Month',valves_caps:'THERMOSTATIC VALVES',valve_n:'Valve {n}',details_status:'Details and status',
+      winter:'Winter',summer:'Summer',season_compare_caps:'SEASON COMPARISON',times:'Runtime',seasons:'Seasons',
+      automation_n:'Automation {n}',enabled:'Enabled',disabled:'Disabled',aut_enable:'Enable automation',aut_disable:'Disable automation',aut_hint:'Configure automations in the card editor.',
+      ambient_temp:'Room temperature',state:'State',valve_mgmt_caps:'VALVE CONTROL',manual:'Manual',turn_off:'Turn off',schedule:'Schedule',ov_manual:'Manual',ov_off:'Off',ov_schedule:'Schedule',
+      last_cmd:'Last command from the card: {mode} ({time})',valve_hint:'Manual mode and schedule status depend on the configured integration.',runtime1_caps:'RUNTIME',
+      valve_demand_hint:'Heat demand does not necessarily match the physical opening of the valve. Times come from the selected sensors.',
+      preset_caps:'PRESET',in_use:'In use',schedule_caps:'SCHEDULE',no_schedule:'No schedule available.',modes_caps:'MODES',
+      heat_modes_hint:'Available modes depend on the configured thermostat entity.',
+      heat_modes_missing:'To show Away and the other modes, select in the editor a climate.* entity that exposes these presets. select.* schedules do not necessarily include Away.',
+      hvac_cool:'Cool',hvac_heat:'Heat',hvac_dry:'Dry',hvac_auto:'Auto',hvac_fan_only:'Fan',hvac_heat_cool:'Auto heat/cool',
+      close:'Close',open:'Open',empty_hint:'Configure at least one thermostat, schedule, air conditioner or valve in the visual editor.',
+      valves_title:'Thermostatic valves',valves_configured:'{n} valves configured',stats:'Statistics',stats_both:'Runtime · Season comparison',runtime:'Runtime',season_compare:'Season comparison',
+      linked_automations:'Linked automations',manage_automations:'Manage Home Assistant automations',sections_aria:'Expandable sections',
+      readonly_footer:'Read-only mode: enable controls in the editor once you have verified the entities.',no_source:'No source available for this mode.',no_months:'No months selected',
+      winter_heating:'Winter · Heating',summer_ac:'Summer · Air conditioner',prev_season:'Previous season',last_season:'Last season',next_scenario:'Next season scenario',
+      next_scenario_title:'Illustrative scenario: average of the last two seasons, not a weather forecast',
+      action_unavailable:'Action {action} not available',cmd_failed:'Command failed.',no_power_mode:'No supported power-on mode.',confirm_disable:'Disable the automation “{name}”?',stub_title:'Home Climate',
+      entity_placeholder:'Select or search entity',remove_entity:'Remove entity',tab_devices:'Devices',tab_stats:'Statistics',tab_automations:'Automations',tab_appearance:'Appearance',tab_advanced:'Advanced',
+      devices_note:'Choose entities that actually exist in Home Assistant. You can remove them one by one.',valves:'Valves',
+      heat_schedule_label:'Thermostat schedules · select.*',heat_schedule_hint:'Select the schedule entity here, even if you have no climate.* thermostat. Options are read from Home Assistant.',
+      heat_preset_label:'Thermostat modes (e.g. Away) · climate.*',heat_preset_hint:'Optional. Choose an entity of the same system that exposes presets (away, schedule, frost_guard). Depending on the integration, commands may affect the whole home.',
+      heat_entity_label:'Temperature thermostat (optional) · climate.*',heat_entity_hint:'If set, shows room temperature, setpoint and HVAC state. Do not put a select.* entity here.',
+      heat_activity_label:'Heating state / heat demand (optional)',heat_activity_hint:'Does not automatically mean the boiler is on.',
+      ac_program_label:'Air conditioner schedule (optional)',ac_program_hint:'Select only a real schedule entity, if one exists.',ac_activity_label:'Air conditioner running sensor (optional)',
+      remove:'Remove',valve_entity:'Valve entity',valve_name:'Name in the card (optional)',valve_name_hint:'If empty, the name assigned in Home Assistant is used.',valve_activity:'Heat demand (optional)',
+      restore_label:'Restore schedule',restore_none:'Not configured',restore_netatmo:'Netatmo action (for compatible devices)',restore_script:'Custom Home Assistant script',
+      restore_hint:'Explicitly select the method compatible with your system.',restore_script_label:'Restore script',time_today:'Time today',time_week:'Time this week',time_month:'Time this month',add_valve:'Add valve',
+      runtime_note:'Sensors must measure the actual duration, with an explicit time unit (h, min or s). No value is made up.',
+      seasons_title:'Season comparisons',seasons_note:'Choose the Winter and Summer months. Configure historical aggregated sensors if available.',hours_prev:'Previous season hours',hours_last:'Last season hours',
+      scenario_note:'Next season scenario: calculated only if both values are available. The month selection defines the period; historical statistics still require data already aggregated for those months.',
+      aut_note:'Add any automations you like. If the custom name is empty, the card uses the original Home Assistant name.',aut_entity:'Automation entity',aut_name:'Custom name (optional)',
+      aut_name_hint:'Leave empty to use the Home Assistant friendly_name.',add_automation:'Add automation',
+      identity:'Edera identity',show_eyebrow_label:'Show top header',show_eyebrow_hint:'When off, only the main title with the dot stays visible.',eyebrow_text:'Top header text',
+      show_title_label:'Show card title',show_title_hint:'When off, the title and the green dot are hidden.',title_label:'Card title',theme:'Theme',theme_auto:'Automatic · Home Assistant',
+      layout_label:'Card mode',layout_complete:'Complete',layout_heat:'Heating only',layout_ac:'Air conditioner only',layout_valves:'Valves only',layout_custom:'Custom',
+      temp_control:'Temperature control',ctrl_arc:'Arc with − / +',ctrl_ring:'Ring with − / +',visible_sections:'Visible sections',
+      show_heat:'Heating',show_ac:'Air conditioner',show_valves:'Valves',show_stats:'Statistics · Runtime',show_seasons:'Statistics · Season comparison',show_automations:'Linked automations',
+      layout_note:'The Heating only, Air conditioner only and Valves only modes automatically hide unrelated devices.',
+      controls_title:'Controls and safety',controls_enabled_label:'Enable real controls',controls_enabled_hint:'On by default. Turn it off to use the card read-only.',
+      confirm_disable_label:'Confirm before disabling automations',
+      advanced_note:'The card grants no permissions beyond Home Assistant. Restoring the valve schedule uses the method configured per valve; if none is set, the button sends no commands.',
+      card_description:'Thermostats, air conditioners, valves, schedules and statistics in the Edera style.'
+    },
+    pl:{
+      months:'Sty,Lut,Mar,Kwi,Maj,Cze,Lip,Sie,Wrz,Paź,Lis,Gru',na:'b.d.',unavailable:'Niedostępne',running:'Pracuje',cooling:'Chłodzenie',idle:'W gotowości',off:'Wyłączone',on:'Włączone',
+      preset_away:'Poza domem',preset_frost_guard:'Ochrona przed mrozem',preset_schedule:'Harmonogram',preset_boost:'Boost',
+      setpoint_temp:'Nastawa temperatury',temp_down:'Zmniejsz temperaturę',temp_up:'Zwiększ temperaturę',set_caps:'NASTAWA',
+      heating_caps:'OGRZEWANIE',ambient:'W pokoju',heat_preset_aria:'Preset ogrzewania',preset:'Preset',ac_turn_off:'Wyłącz klimatyzację',ac_turn_on:'Włącz klimatyzację',ac_caps:'KLIMATYZACJA',ac_preset_aria:'Preset klimatyzacji',
+      active_valves:'Aktywne zawory',heat_demand_now:'Zapotrzebowanie na ciepło · teraz',heating:'Ogrzewanie',sensor_duration:'Czas z czujnika',ac:'Klimatyzacja',
+      runtime_caps:'CZAS PRACY',today:'Dziś',week:'Tydzień',month:'Miesiąc',valves_caps:'ZAWORY TERMOSTATYCZNE',valve_n:'Zawór {n}',details_status:'Szczegóły i stan',
+      winter:'Zima',summer:'Lato',season_compare_caps:'PORÓWNANIE SEZONÓW',times:'Czasy',seasons:'Sezony',
+      automation_n:'Automatyzacja {n}',enabled:'Włączona',disabled:'Wyłączona',aut_enable:'Włącz automatyzację',aut_disable:'Wyłącz automatyzację',aut_hint:'Skonfiguruj automatyzacje w edytorze karty.',
+      ambient_temp:'Temperatura w pomieszczeniu',state:'Stan',valve_mgmt_caps:'STEROWANIE ZAWOREM',manual:'Ręcznie',turn_off:'Wyłącz',schedule:'Harmonogram',ov_manual:'Ręcznie',ov_off:'Wyłączony',ov_schedule:'Harmonogram',
+      last_cmd:'Ostatnie polecenie z karty: {mode} ({time})',valve_hint:'Tryb ręczny i stan harmonogramu zależą od skonfigurowanej integracji.',runtime1_caps:'CZAS PRACY',
+      valve_demand_hint:'Zapotrzebowanie na ciepło nie musi oznaczać fizycznego otwarcia zaworu. Czasy pochodzą z wybranych czujników.',
+      preset_caps:'PRESET',in_use:'W użyciu',schedule_caps:'HARMONOGRAM',no_schedule:'Brak dostępnych harmonogramów.',modes_caps:'TRYBY',
+      heat_modes_hint:'Dostępne tryby zależą od skonfigurowanej encji termostatu.',
+      heat_modes_missing:'Aby wyświetlić tryb Poza domem i pozostałe, wybierz w edytorze encję climate.*, która udostępnia te presety. Harmonogramy select.* nie muszą zawierać trybu Poza domem.',
+      hvac_cool:'Chłodzenie',hvac_heat:'Grzanie',hvac_dry:'Osuszanie',hvac_auto:'Auto',hvac_fan_only:'Wentylator',hvac_heat_cool:'Auto grzanie/chłodzenie',
+      close:'Zamknij',open:'Otwórz',empty_hint:'Skonfiguruj w edytorze wizualnym co najmniej jeden termostat, harmonogram, klimatyzator lub zawór.',
+      valves_title:'Zawory termostatyczne',valves_configured:'Skonfigurowane zawory: {n}',stats:'Statystyki',stats_both:'Czasy · Porównanie sezonów',runtime:'Czas pracy',season_compare:'Porównanie sezonów',
+      linked_automations:'Powiązane automatyzacje',manage_automations:'Zarządzaj automatyzacjami Home Assistant',sections_aria:'Rozwijane sekcje',
+      readonly_footer:'Tryb tylko do odczytu: włącz sterowanie w edytorze, gdy sprawdzisz encje.',no_source:'Brak źródła danych dla tego trybu.',no_months:'Nie wybrano miesięcy',
+      winter_heating:'Zima · Ogrzewanie',summer_ac:'Lato · Klimatyzacja',prev_season:'Poprzedni sezon',last_season:'Ostatni sezon',next_scenario:'Następny sezon (szacunek)',
+      next_scenario_title:'Scenariusz poglądowy: średnia z dwóch ostatnich sezonów, nie prognoza pogody',
+      action_unavailable:'Akcja {action} niedostępna',cmd_failed:'Polecenie nie powiodło się.',no_power_mode:'Brak obsługiwanego trybu włączenia.',confirm_disable:'Wyłączyć automatyzację „{name}”?',stub_title:'Klimat w domu',
+      entity_placeholder:'Wybierz lub wyszukaj encję',remove_entity:'Usuń encję',tab_devices:'Urządzenia',tab_stats:'Statystyki',tab_automations:'Automatyzacje',tab_appearance:'Wygląd',tab_advanced:'Zaawansowane',
+      devices_note:'Wybierz encje, które naprawdę istnieją w Home Assistant. Możesz je usuwać pojedynczo.',valves:'Zawory',
+      heat_schedule_label:'Harmonogramy termostatu · select.*',heat_schedule_hint:'Wybierz tu encję harmonogramów, nawet jeśli nie masz termostatu climate.*. Opcje są odczytywane z Home Assistant.',
+      heat_preset_label:'Tryby termostatu (np. Poza domem) · climate.*',heat_preset_hint:'Opcjonalne. Wybierz encję tej samej instalacji, która udostępnia presety (away, schedule, frost_guard). Zależnie od integracji polecenia mogą dotyczyć całego domu.',
+      heat_entity_label:'Termostat temperatury (opcjonalnie) · climate.*',heat_entity_hint:'Jeśli ustawiony, pokazuje temperaturę w pomieszczeniu, nastawę i stan HVAC. Nie wpisuj tu encji select.*.',
+      heat_activity_label:'Stan ogrzewania / zapotrzebowanie na ciepło (opcjonalnie)',heat_activity_hint:'Nie oznacza automatycznie, że kocioł jest włączony.',
+      ac_program_label:'Harmonogram klimatyzacji (opcjonalnie)',ac_program_hint:'Wybierz tylko prawdziwą encję harmonogramu, jeśli istnieje.',ac_activity_label:'Czujnik pracy klimatyzacji (opcjonalnie)',
+      remove:'Usuń',valve_entity:'Encja zaworu',valve_name:'Nazwa na karcie (opcjonalnie)',valve_name_hint:'Jeśli puste, używana jest nazwa z Home Assistant.',valve_activity:'Zapotrzebowanie na ciepło (opcjonalnie)',
+      restore_label:'Przywróć harmonogram',restore_none:'Nie skonfigurowano',restore_netatmo:'Akcja Netatmo (dla zgodnych urządzeń)',restore_script:'Własny skrypt Home Assistant',
+      restore_hint:'Wybierz metodę zgodną z Twoją instalacją.',restore_script_label:'Skrypt przywracania',time_today:'Czas dziś',time_week:'Czas w tygodniu',time_month:'Czas w miesiącu',add_valve:'Dodaj zawór',
+      runtime_note:'Czujniki muszą mierzyć rzeczywisty czas, z jawną jednostką czasu (h, min lub s). Żadna wartość nie jest zmyślana.',
+      seasons_title:'Porównania sezonowe',seasons_note:'Wybierz miesiące Zimy i Lata. Skonfiguruj historyczne czujniki zagregowane, jeśli są dostępne.',hours_prev:'Godziny w poprzednim sezonie',hours_last:'Godziny w ostatnim sezonie',
+      scenario_note:'Następny sezon: liczony tylko, gdy obie wartości są dostępne. Wybór miesięcy określa okres; statystyki historyczne i tak wymagają danych już zagregowanych dla tych miesięcy.',
+      aut_note:'Dodaj dowolne automatyzacje. Jeśli własna nazwa jest pusta, karta używa oryginalnej nazwy z Home Assistant.',aut_entity:'Encja automatyzacji',aut_name:'Własna nazwa (opcjonalnie)',
+      aut_name_hint:'Zostaw puste, aby użyć friendly_name z Home Assistant.',add_automation:'Dodaj automatyzację',
+      identity:'Styl Edera',show_eyebrow_label:'Pokaż nagłówek górny',show_eyebrow_hint:'Po wyłączeniu widoczny zostaje tylko główny tytuł z kropką.',eyebrow_text:'Tekst nagłówka górnego',
+      show_title_label:'Pokaż tytuł karty',show_title_hint:'Po wyłączeniu tytuł i zielona kropka są ukryte.',title_label:'Tytuł karty',theme:'Motyw',theme_auto:'Automatyczny · Home Assistant',
+      layout_label:'Tryb karty',layout_complete:'Pełny',layout_heat:'Tylko ogrzewanie',layout_ac:'Tylko klimatyzacja',layout_valves:'Tylko zawory',layout_custom:'Własny',
+      temp_control:'Regulacja temperatury',ctrl_arc:'Łuk z − / +',ctrl_ring:'Pierścień z − / +',visible_sections:'Widoczne sekcje',
+      show_heat:'Ogrzewanie',show_ac:'Klimatyzacja',show_valves:'Zawory',show_stats:'Statystyki · Czas pracy',show_seasons:'Statystyki · Porównanie sezonów',show_automations:'Powiązane automatyzacje',
+      layout_note:'Tryby Tylko ogrzewanie, Tylko klimatyzacja i Tylko zawory automatycznie ukrywają niepowiązane urządzenia.',
+      controls_title:'Sterowanie i bezpieczeństwo',controls_enabled_label:'Włącz rzeczywiste sterowanie',controls_enabled_hint:'Domyślnie włączone. Wyłącz, aby używać karty tylko do odczytu.',
+      confirm_disable_label:'Potwierdzaj przed wyłączeniem automatyzacji',
+      advanced_note:'Karta nie daje żadnych uprawnień ponad Home Assistant. Przywracanie harmonogramu zaworów używa metody skonfigurowanej dla każdego zaworu; jeśli jej brak, przycisk nie wysyła poleceń.',
+      card_description:'Termostaty, klimatyzatory, zawory, harmonogramy i statystyki w stylu Edera.'
+    }
+  };
+  let LOCALE='en',LANG='en';
+  const setLang=h=>{
+    let l=String(h?.locale?.language||h?.language||(typeof navigator!=='undefined'&&navigator.language)||'en');
+    try{new Intl.NumberFormat(l);}catch(_){l='en';}
+    LOCALE=l;const b=l.toLowerCase().split(/[-_]/)[0];LANG=I18N[b]?b:'en';
+  };
+  setLang(null);
+  const tr=(k,v)=>{let s=I18N[LANG]?.[k]??I18N.en[k]??I18N.it[k]??k;if(v)for(const x of Object.keys(v))s=s.split(`{${x}}`).join(String(v[x]));return s;};
+  const trh=(k,v)=>esc(tr(k,v));
+  const monthNames=()=>tr('months').split(',');
+  const hhmm=ts=>{try{return new Intl.DateTimeFormat(LOCALE,{hour:'2-digit',minute:'2-digit'}).format(new Date(ts));}catch(_){return '';}};
   const defaults = Object.freeze({
     type:`custom:${TAG}`, title:'Clima Casa', eyebrow:'CLIMATE CONTROL CARD', show_eyebrow:true, show_title:true, theme_mode:'auto', layout:'complete', temperature_control:'arc',
     show_heat:true,show_ac:true,show_valves:true,show_stats:true,show_seasons:true,show_automations:true,
@@ -67,16 +226,16 @@
     return (c.layout==='heat'&&k==='heat')||(c.layout==='ac'&&k==='ac')||(c.layout==='valves'&&k==='valves');
   };
   const actionStatus = e => {
-    if(!valid(e))return {label:'Non disponibile',state:'off'};
-    if(e.attributes?.hvac_action==='heating')return {label:'In funzione',state:'heat'};
-    if(e.attributes?.hvac_action==='cooling')return {label:'Raffreddamento',state:'cool'};
-    if(e.attributes?.hvac_action==='idle')return {label:'In attesa',state:'off'};
-    if(e.state==='off')return {label:'Spento',state:'off'};
-    return {label:'Acceso',state:e.state==='heat'?'heat':e.state==='cool'?'cool':'on'};
+    if(!valid(e))return {label:tr('unavailable'),state:'off'};
+    if(e.attributes?.hvac_action==='heating')return {label:tr('running'),state:'heat'};
+    if(e.attributes?.hvac_action==='cooling')return {label:tr('cooling'),state:'cool'};
+    if(e.attributes?.hvac_action==='idle')return {label:tr('idle'),state:'off'};
+    if(e.state==='off')return {label:tr('off'),state:'off'};
+    return {label:tr('on'),state:e.state==='heat'?'heat':e.state==='cool'?'cool':'on'};
   };
   const friendly = (h,id,fallback)=> txt(h?.states?.[id]?.attributes?.friendly_name,65)||fallback;
   function formatDuration(e) {
-    if(!valid(e))return 'N/D';
+    if(!valid(e))return tr('na');
     let value=num(e.state);
     const unit=String(e.attributes?.unit_of_measurement??'').trim().toLowerCase();
     if(value!==null&&value>=0){
@@ -85,10 +244,10 @@
       else if(['min','mins','minute','minutes','m'].includes(unit))minutes=value;
       else if(['s','sec','seconds','secondi'].includes(unit))minutes=value/60;
       if(minutes!==null){minutes=Math.round(minutes);return `${Math.floor(minutes/60)}h ${String(minutes%60).padStart(2,'0')}m`;}
-      if(unit)return `${value.toLocaleString('it-IT',{maximumFractionDigits:1})} ${esc(e.attributes.unit_of_measurement)}`;
+      if(unit)return `${value.toLocaleString(LOCALE,{maximumFractionDigits:1})} ${esc(e.attributes.unit_of_measurement)}`;
     }
     if(/^\d{1,4}:\d{2}(?::\d{2})?$/.test(String(e.state))) return esc(e.state);
-    return 'N/D';
+    return tr('na');
   }
   function numericHours(e){
     if(!valid(e))return null;const v=num(e.state),u=String(e.attributes?.unit_of_measurement??'').toLowerCase();
@@ -98,7 +257,7 @@
     if(['s','sec','seconds','secondi'].includes(u))return v/3600;
     return null;
   }
-  const hours = n => n===null?'N/D':`${n.toLocaleString('it-IT',{maximumFractionDigits:1})}h`;
+  const hours = n => n===null?tr('na'):`${n.toLocaleString(LOCALE,{maximumFractionDigits:1})}h`;
   function tempLimits(e, fallbackMin=5,fallbackMax=30){
     const min=num(e?.attributes?.min_temp), max=num(e?.attributes?.max_temp),step=num(e?.attributes?.target_temp_step);
     return {min:min??fallbackMin,max:max??fallbackMax,step:step&&step>0?step:0.5};
@@ -205,11 +364,11 @@
       r.addEventListener('pointercancel',()=>this._arcCancel());
       r.addEventListener('keydown',e=>this._arcKey(e));
     }
-    static getStubConfig(){return {title:'Clima Casa',theme_mode:'auto',controls_enabled:true,layout:'complete'}}
+    static getStubConfig(){return {title:tr('stub_title'),theme_mode:'auto',controls_enabled:true,layout:'complete'}}
     static getConfigElement(){return document.createElement(EDITOR)}
     getCardSize(){return 5+Math.ceil(this._cfg.valves.length/3)}
     setConfig(c){this._cfg=normalize(c);this._sig='';this._render()}
-    set hass(h){this._hass=h;this._render()}
+    set hass(h){this._hass=h;setLang(h);this._render()}
     connectedCallback(){document.addEventListener('keydown',this._onKey);this._media?.addEventListener?.('change',this._onMedia=()=>this._render());this._sig='';this._render()}
     disconnectedCallback(){document.removeEventListener('keydown',this._onKey);if(this._onMedia)this._media?.removeEventListener?.('change',this._onMedia);this._drag=null;this._removeLayer();this._unlock()}
     _state(id){return id?this._hass?.states?.[id]:null}
@@ -238,30 +397,30 @@
       const c=this._cfg,schedule=this._state(c.heat_schedule_entity),{entity,modes}=this._heatPreset();
       const active=valid(entity)&&modes.includes(entity.attributes?.preset_mode)?entity.attributes.preset_mode:'';
       const special=['away','frost_guard','boost'].includes(active)?active:'';
-      return special?({away:'Assente',frost_guard:'Antigelo',boost:'Boost'}[special]):valid(schedule)?schedule.state:active==='schedule'?'Programmazione':'Non disponibile';
+      return special?tr('preset_'+special):valid(schedule)?schedule.state:active==='schedule'?tr('preset_schedule'):tr('unavailable');
     }
     _tempCtrl(id,kind,compact=false){
       const e=this._state(id),v=this._shown(id,e),unit=this._hass?.config?.unit_system?.temperature||'°C';
       const {min,max,step}=tempLimits(e,kind==='ac'?16:5,30),enabled=this._enabled()&&v!==null&&(Number(e?.attributes?.supported_features||0)&1)!==0;
-      const dis=enabled?'':'disabled',lab='Temperatura impostata',tone=`--tone:var(--cc-${kind==='ac'?'cool':'heat'})`;
+      const dis=enabled?'':'disabled',lab=trh('setpoint_temp'),tone=`--tone:var(--cc-${kind==='ac'?'cool':'heat'})`;
       const btn=(dir,name,cls)=>`<button class="step ${cls}" data-action="adjust" data-id="${esc(id)}" data-dir="${dir}" ${dis} aria-label="${name}">${icon(dir<0?'minus':'plus')}</button>`;
-      const minus=btn(-1,'Diminuisci temperatura','l'),plus=btn(1,'Aumenta temperatura','r');
+      const minus=btn(-1,trh('temp_down'),'l'),plus=btn(1,trh('temp_up'),'r');
       if(compact)return `<div class="bigstep" style="${tone}">${minus}<strong role="img" aria-label="${lab} ${temp(v,unit)}">${temp(v,unit)}</strong>${plus}</div>`;
       const f=v===null?0:clip((v-min)/Math.max(0.1,max-min),0,1);
       if(this._cfg.temperature_control==='ring'){
-        const C=2*Math.PI*37,n=v===null?'—':`${v.toLocaleString('it-IT',{minimumFractionDigits:1,maximumFractionDigits:1})}°`;
-        return `<div class="ringc" style="${tone}">${minus}<div class="ring" role="img" aria-label="${lab} ${temp(v,unit)}"><svg viewBox="0 0 84 84" aria-hidden="true"><circle class="rt" cx="42" cy="42" r="37"/><circle class="rf" cx="42" cy="42" r="37" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-f)).toFixed(1)}"/></svg><div class="rmid"><strong>${n}</strong><small>IMPOSTATA</small></div></div>${plus}</div>`;
+        const C=2*Math.PI*37,n=v===null?'—':`${v.toLocaleString(LOCALE,{minimumFractionDigits:1,maximumFractionDigits:1})}°`;
+        return `<div class="ringc" style="${tone}">${minus}<div class="ring" role="img" aria-label="${lab} ${temp(v,unit)}"><svg viewBox="0 0 84 84" aria-hidden="true"><circle class="rt" cx="42" cy="42" r="37"/><circle class="rf" cx="42" cy="42" r="37" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-f)).toFixed(1)}"/></svg><div class="rmid"><strong>${n}</strong><small>${trh('set_caps')}</small></div></div>${plus}</div>`;
       }
       const [tx,ty]=arcPt(f);
-      return `<div class="arc" style="${tone}"><svg class="g" viewBox="0 0 150 86" data-arc data-id="${esc(id)}" data-min="${min}" data-max="${max}" data-step="${step}" data-unit="${esc(unit)}" role="slider" tabindex="${enabled?0:-1}" aria-label="${lab}" aria-valuemin="${min}" aria-valuemax="${max}" aria-valuenow="${v??min}" aria-valuetext="${temp(v,unit)}" ${enabled?'':'aria-disabled="true"'}><path class="trk" d="M${ARC.cx-ARC.r} ${ARC.cy} A${ARC.r} ${ARC.r} 0 0 1 ${ARC.cx+ARC.r} ${ARC.cy}"/><path class="fil" d="${arcD(f)}"/><circle class="thumb" cx="${tx.toFixed(2)}" cy="${ty.toFixed(2)}" r="8"/></svg><div class="mid"><strong>${temp(v,unit)}</strong><small>IMPOSTATA</small></div>${minus}${plus}</div>`;
+      return `<div class="arc" style="${tone}"><svg class="g" viewBox="0 0 150 86" data-arc data-id="${esc(id)}" data-min="${min}" data-max="${max}" data-step="${step}" data-unit="${esc(unit)}" role="slider" tabindex="${enabled?0:-1}" aria-label="${lab}" aria-valuemin="${min}" aria-valuemax="${max}" aria-valuenow="${v??min}" aria-valuetext="${temp(v,unit)}" ${enabled?'':'aria-disabled="true"'}><path class="trk" d="M${ARC.cx-ARC.r} ${ARC.cy} A${ARC.r} ${ARC.r} 0 0 1 ${ARC.cx+ARC.r} ${ARC.cy}"/><path class="fil" d="${arcD(f)}"/><circle class="thumb" cx="${tx.toFixed(2)}" cy="${ty.toFixed(2)}" r="8"/></svg><div class="mid"><strong>${temp(v,unit)}</strong><small>${trh('set_caps')}</small></div>${minus}${plus}</div>`;
     }
     _heating(){
       const c=this._cfg,hasClimate=!!c.heat_entity,e=this._state(c.heat_entity),stat=actionStatus(e),isActive=hasClimate&&stat.state==='heat';
       const te=ambient(e),unit=this._hass?.config?.unit_system?.temperature||'°C';
       const {modes}=this._heatPreset(),hasPreset=!!(c.heat_schedule_entity||modes.length);
-      return `<section class="hero heat ${isActive?'is-active':''}"><div class="row"><div class="kicker">${icon('radiator')} RISCALDAMENTO</div>${hasClimate?`<span class="pill ${stat.state==='heat'?'heat':stat.state==='off'?'off':'on'}">${stat.state==='heat'?icon('fire'):icon('thermostat')} ${esc(stat.label)}</span>`:''}</div>
-        ${hasClimate?`<div class="hero-main"><div><span class="caption">Ambiente</span><div class="big">${temp(te,unit)}</div></div>${this._tempCtrl(c.heat_entity,'heat')}</div>`:''}
-        ${hasPreset?`<button class="details" data-action="open-program" aria-haspopup="dialog" aria-label="Preset riscaldamento" ${(this._select(c.heat_schedule_entity).length||modes.length)?'':'disabled'}><span class="lbl">Preset</span>${icon('chevron-right')}</button>`:''}</section>`;
+      return `<section class="hero heat ${isActive?'is-active':''}"><div class="row"><div class="kicker">${icon('radiator')} ${trh('heating_caps')}</div>${hasClimate?`<span class="pill ${stat.state==='heat'?'heat':stat.state==='off'?'off':'on'}">${stat.state==='heat'?icon('fire'):icon('thermostat')} ${esc(stat.label)}</span>`:''}</div>
+        ${hasClimate?`<div class="hero-main"><div><span class="caption">${trh('ambient')}</span><div class="big">${temp(te,unit)}</div></div>${this._tempCtrl(c.heat_entity,'heat')}</div>`:''}
+        ${hasPreset?`<button class="details" data-action="open-program" aria-haspopup="dialog" aria-label="${trh('heat_preset_aria')}" ${(this._select(c.heat_schedule_entity).length||modes.length)?'':'disabled'}><span class="lbl">${trh('preset')}</span>${icon('chevron-right')}</button>`:''}</section>`;
     }
     _aircon(){
       const c=this._cfg,e=this._state(c.ac_entity),stat=actionStatus(e),modes=valid(e)&&Array.isArray(e.attributes?.hvac_modes)?e.attributes.hvac_modes:[],unit=this._hass?.config?.unit_system?.temperature||'°C';
@@ -274,11 +433,11 @@
       const hasMenu=!!(opts.length||presets.length||c.ac_program_entity);
       const tone=stat.state==='cool'?'cool':stat.state==='heat'?'heat':stat.state==='off'?'off':'on';
       const badge=(canPower&&this._enabled())
-        ?`<button class="pill ${isOn?`on ${tone==='heat'?'heat':tone==='cool'?'cool':'generic'}`:''}" data-action="power-ac" data-id="${esc(c.ac_entity)}" aria-pressed="${isOn}" aria-label="${isOn?'Spegni':'Accendi'} climatizzatore">${icon('power')} ${esc(stat.label)}</button>`
+        ?`<button class="pill ${isOn?`on ${tone==='heat'?'heat':tone==='cool'?'cool':'generic'}`:''}" data-action="power-ac" data-id="${esc(c.ac_entity)}" aria-pressed="${isOn}" aria-label="${isOn?trh('ac_turn_off'):trh('ac_turn_on')}">${icon('power')} ${esc(stat.label)}</button>`
         :`<span class="pill ${tone}">${icon(stat.state==='off'?'power-off':mdiMode(e?.state))} ${esc(stat.label)}</span>`;
-      return `<section class="hero ac ${isActive?'is-active':''}"><div class="row"><div class="kicker">${icon('air-conditioner')} CLIMATIZZATORE</div>${badge}</div>
-        <div class="hero-main"><div><span class="caption">Ambiente</span><div class="big">${temp(ambient(e),unit)}</div></div>${this._tempCtrl(c.ac_entity,'ac')}</div>
-        ${hasMenu?`<button class="details" data-action="open-ac" aria-haspopup="dialog" aria-label="Preset climatizzatore"><span class="lbl">Preset</span>${icon('chevron-right')}</button>`:''}</section>`;
+      return `<section class="hero ac ${isActive?'is-active':''}"><div class="row"><div class="kicker">${icon('air-conditioner')} ${trh('ac_caps')}</div>${badge}</div>
+        <div class="hero-main"><div><span class="caption">${trh('ambient')}</span><div class="big">${temp(ambient(e),unit)}</div></div>${this._tempCtrl(c.ac_entity,'ac')}</div>
+        ${hasMenu?`<button class="details" data-action="open-ac" aria-haspopup="dialog" aria-label="${trh('ac_preset_aria')}"><span class="lbl">${trh('preset')}</span>${icon('chevron-right')}</button>`:''}</section>`;
     }
     _stats(){const c=this._cfg,p=['today','week','month'][this._period],heat=isShown(c,'heat')&&!!c.heat_entity,ac=isShown(c,'ac')&&!!c.ac_entity,zones=isShown(c,'valves')&&c.valves.length;
       const demands=c.valves.map(v=>{
@@ -291,31 +450,31 @@
       const active=demands.filter(x=>x===true).length;
       const measured=demands.filter(x=>x!==null).length;
       const data=[];
-      if(zones){data.push({name:'Valvole attive',value:measured===c.valves.length?`${active} / ${c.valves.length}`:'N/D',foot:'Richiesta calore · ora',icon:'radiator',color:'heat'})}
-      if(heat)data.push({name:'Riscaldamento',value:formatDuration(this._state(c[`heat_${p}`])),foot:'Durata dal sensore',icon:'fire',color:'heat'});
-      if(ac)data.push({name:'Climatizzatore',value:formatDuration(this._state(c[`ac_${p}`])),foot:'Durata dal sensore',icon:'snowflake',color:'cool'});
+      if(zones){data.push({name:tr('active_valves'),value:measured===c.valves.length?`${active} / ${c.valves.length}`:tr('na'),foot:trh('heat_demand_now'),icon:'radiator',color:'heat'})}
+      if(heat)data.push({name:tr('heating'),value:formatDuration(this._state(c[`heat_${p}`])),foot:trh('sensor_duration'),icon:'fire',color:'heat'});
+      if(ac)data.push({name:tr('ac'),value:formatDuration(this._state(c[`ac_${p}`])),foot:trh('sensor_duration'),icon:'snowflake',color:'cool'});
       if(!data.length)return '';
-      return `<section class="section"><div class="section-row" style="margin-bottom:10px"><h3 class="section-title" style="margin:0">TEMPI DI FUNZIONAMENTO</h3><div class="tabs">${['Oggi','Settimana','Mese'].map((x,i)=>`<button data-action="period" data-index="${i}" class="${i===this._period?'active':''}">${x}</button>`).join('')}</div></div><div class="stats" style="grid-template-columns:repeat(${Math.min(3,data.length)},minmax(0,1fr))">${data.map(d=>`<div class="stat"><label>${icon(d.icon)} ${esc(d.name)}</label><strong>${esc(d.value)}</strong><small>${d.foot}</small></div>`).join('')}</div></section>`;
+      return `<section class="section"><div class="section-row" style="margin-bottom:10px"><h3 class="section-title" style="margin:0">${trh('runtime_caps')}</h3><div class="tabs">${[trh('today'),trh('week'),trh('month')].map((x,i)=>`<button data-action="period" data-index="${i}" class="${i===this._period?'active':''}">${x}</button>`).join('')}</div></div><div class="stats" style="grid-template-columns:repeat(${Math.min(3,data.length)},minmax(0,1fr))">${data.map(d=>`<div class="stat"><label>${icon(d.icon)} ${esc(d.name)}</label><strong>${esc(d.value)}</strong><small>${d.foot}</small></div>`).join('')}</div></section>`;
     }
     _valves(){const c=this._cfg;if(!c.valves.length)return '';
-      return `<section class="section"><h3 class="section-title">VALVOLE TERMOSTATICHE</h3><div class="zones">${c.valves.map((v,i)=>{
-        const e=this._state(v.entity),s=actionStatus(e),name=v.name||friendly(this._hass,v.entity,`Valvola ${i+1}`);
+      return `<section class="section"><h3 class="section-title">${trh('valves_caps')}</h3><div class="zones">${c.valves.map((v,i)=>{
+        const e=this._state(v.entity),s=actionStatus(e),name=v.name||friendly(this._hass,v.entity,tr('valve_n',{n:i+1}));
         const current=ambient(e),t=this._shown(v.entity,e),period=['today','week','month'][this._period],dur=formatDuration(this._state(v[period]));
-        return `<div class="zone"><div class="zone-top">${icon('radiator')}<span class="pill ${s.state==='heat'?'heat':'off'}">${esc(s.label)}</span></div><div><div class="zone-name">${esc(name)}</div><div class="zone-meta">Ambiente ${temp(current)}</div></div><div class="zone-bottom"><strong role="img" aria-label="Temperatura impostata ${temp(t)}">${temp(t)}</strong><small>${esc(dur)}<br>${['oggi','settimana','mese'][this._period]}</small></div><button class="details" data-action="open-valve" data-index="${i}" aria-haspopup="dialog"><span class="lbl">Dettagli e stato</span>${icon('chevron-right')}</button></div>`;
+        return `<div class="zone"><div class="zone-top">${icon('radiator')}<span class="pill ${s.state==='heat'?'heat':'off'}">${esc(s.label)}</span></div><div><div class="zone-name">${esc(name)}</div><div class="zone-meta">${trh('ambient')} ${temp(current)}</div></div><div class="zone-bottom"><strong role="img" aria-label="${trh('setpoint_temp')} ${temp(t)}">${temp(t)}</strong><small>${esc(dur)}<br>${trh(['today','week','month'][this._period]).toLowerCase()}</small></div><button class="details" data-action="open-valve" data-index="${i}" aria-haspopup="dialog"><span class="lbl">${trh('details_status')}</span>${icon('chevron-right')}</button></div>`;
       }).join('')}</div></section>`;
     }
-    _seasons(){const c=this._cfg,choices=[];if(isShown(c,'heat')&&c.heat_entity)choices.push(['winter','Inverno']);if(isShown(c,'ac')&&c.ac_entity)choices.push(['summer','Estate']);if(!choices.length)return '';
+    _seasons(){const c=this._cfg,choices=[];if(isShown(c,'heat')&&c.heat_entity)choices.push(['winter',trh('winter')]);if(isShown(c,'ac')&&c.ac_entity)choices.push(['summer',trh('summer')]);if(!choices.length)return '';
       const chosen=choices.some(x=>x[0]===this._season)?this._season:choices[0][0];if(this._season!==chosen)this._season=chosen;
-      return `<section class="section"><div class="panel"><div class="section-row"><span class="caption" style="margin:0">CONFRONTO PER STAGIONE</span><div class="tabs">${choices.map(([s,n])=>`<button class="${chosen===s?'active':''}" data-action="season" data-value="${s}" aria-pressed="${chosen===s}">${n}</button>`).join('')}</div></div>${this._seasonCards()}</div></section>`;
+      return `<section class="section"><div class="panel"><div class="section-row"><span class="caption" style="margin:0">${trh('season_compare_caps')}</span><div class="tabs">${choices.map(([s,n])=>`<button class="${chosen===s?'active':''}" data-action="season" data-value="${s}" aria-pressed="${chosen===s}">${n}</button>`).join('')}</div></div>${this._seasonCards()}</div></section>`;
     }
     _statsBody(hasT,hasS){
       const tab=hasT&&hasS?this._statTab:(hasT?'times':'seasons');
-      const tabs=hasT&&hasS?`<div class="tabs tabs-top">${[['times','Tempi'],['seasons','Stagioni']].map(([k,n])=>`<button class="${tab===k?'active':''}" data-action="stat-tab" data-value="${k}" aria-pressed="${tab===k}">${n}</button>`).join('')}</div>`:'';
+      const tabs=hasT&&hasS?`<div class="tabs tabs-top">${[['times',trh('times')],['seasons',trh('seasons')]].map(([k,n])=>`<button class="${tab===k?'active':''}" data-action="stat-tab" data-value="${k}" aria-pressed="${tab===k}">${n}</button>`).join('')}</div>`:'';
       return tabs+(tab==='times'?this._stats():this._seasons());
     }
     _automations(){const c=this._cfg;return `<section class="section"><div class="panel">${c.automations.length?c.automations.map((a,i)=>{
-      const e=this._state(a.entity),known=valid(e),on=known&&e.state==='on';return `<div class="aut-row"><div><strong>${esc(a.name||friendly(this._hass,a.entity,`Automazione ${i+1}`))}</strong><small>${!known?'Non disponibile':on?'Abilitata':'Disabilitata'}</small></div><button class="switch ${on?'on':''}" data-action="automation" data-index="${i}" role="switch" aria-label="${on?'Disabilita':'Abilita'} automazione" aria-checked="${on}" ${this._enabled()&&known&&!this._pending.has(JSON.stringify(['automation',on?'turn_off':'turn_on',undefined]))?'':'disabled'}><i></i></button></div>`;
-    }).join(''):`<p class="hint" style="margin:0">Configura automazioni nell'editor della card.</p>`}</div></section>`;}
+      const e=this._state(a.entity),known=valid(e),on=known&&e.state==='on';return `<div class="aut-row"><div><strong>${esc(a.name||friendly(this._hass,a.entity,tr('automation_n',{n:i+1})))}</strong><small>${!known?trh('unavailable'):on?trh('enabled'):trh('disabled')}</small></div><button class="switch ${on?'on':''}" data-action="automation" data-index="${i}" role="switch" aria-label="${on?trh('aut_disable'):trh('aut_enable')}" aria-checked="${on}" ${this._enabled()&&known&&!this._pending.has(JSON.stringify(['automation',on?'turn_off':'turn_on',undefined]))?'':'disabled'}><i></i></button></div>`;
+    }).join(''):`<p class="hint" style="margin:0">${trh('aut_hint')}</p>`}</div></section>`;}
     _popup(){if(!this._modal)return '';
       const c=this._cfg,en=this._enabled()?'':'disabled';
       const mk=(act,val,label,on)=>`<button data-action="${act}" data-value="${esc(val)}" class="${on?'active':''}" ${en}>${on?icon('check'):''}${esc(label)}</button>`;
@@ -325,32 +484,32 @@
         const e=this._state(v.entity),t=this._shown(v.entity,e),mode=actionStatus(e),restore=v.restore_method==='netatmo'||v.restore_method==='script'&&!!v.restore_script;
         const canOff=Array.isArray(e?.attributes?.hvac_modes)&&e.attributes.hvac_modes.includes('off');
         const o=this._overrides.get(v.entity);
-        name=v.name||friendly(this._hass,v.entity,`Valvola ${i+1}`);
-        body=`<div class="modal-block"><div class="row"><span class="caption" style="margin:0">Temperatura ambiente</span><strong>${temp(ambient(e))}</strong></div><div class="row" style="margin-top:8px"><span class="caption" style="margin:0">Stato</span><span class="pill ${mode.state==='heat'?'heat':'off'}">${esc(mode.label)}</span></div></div>
+        name=v.name||friendly(this._hass,v.entity,tr('valve_n',{n:i+1}));
+        body=`<div class="modal-block"><div class="row"><span class="caption" style="margin:0">${trh('ambient_temp')}</span><strong>${temp(ambient(e))}</strong></div><div class="row" style="margin-top:8px"><span class="caption" style="margin:0">${trh('state')}</span><span class="pill ${mode.state==='heat'?'heat':'off'}">${esc(mode.label)}</span></div></div>
           <div class="modal-block setpoint-shell">${this._tempCtrl(v.entity,'heat',true)}</div>
-          <h3 class="modal-title">GESTIONE VALVOLA</h3><div class="mode-grid g3"><button data-action="manual" data-index="${i}" ${this._enabled()&&t!==null?'':'disabled'}>${icon('thermometer-plus')} Manuale</button><button data-action="valve-off" data-index="${i}" ${this._enabled()&&canOff?'':'disabled'}>${icon('power')} Spegni</button><button data-action="restore" data-index="${i}" ${this._enabled()&&restore?'':'disabled'}>${icon('calendar-check')} Programma</button></div>
-          <p class="hint">${o?`Ultimo comando dalla card: ${esc(o.mode)} (${esc(new Intl.DateTimeFormat('it-IT',{hour:'2-digit',minute:'2-digit'}).format(new Date(o.time)))})`:'Modalità manuale e stato del programma dipendono dall’integrazione configurata.'}</p>
-          <h3 class="modal-title">TEMPO DI FUNZIONAMENTO</h3><div class="modal-stats">${[['Oggi','today'],['Settimana','week'],['Mese','month']].map(([n,k])=>`<div><strong>${formatDuration(this._state(v[k]))}</strong><small>${n}</small></div>`).join('')}</div>
-          <p class="hint">La richiesta di calore non coincide necessariamente con l'apertura fisica della valvola. I tempi sono quelli dei sensori selezionati.</p>`;
+          <h3 class="modal-title">${trh('valve_mgmt_caps')}</h3><div class="mode-grid g3"><button data-action="manual" data-index="${i}" ${this._enabled()&&t!==null?'':'disabled'}>${icon('thermometer-plus')} ${trh('manual')}</button><button data-action="valve-off" data-index="${i}" ${this._enabled()&&canOff?'':'disabled'}>${icon('power')} ${trh('turn_off')}</button><button data-action="restore" data-index="${i}" ${this._enabled()&&restore?'':'disabled'}>${icon('calendar-check')} ${trh('schedule')}</button></div>
+          <p class="hint">${o?esc(tr('last_cmd',{mode:tr('ov_'+o.mode),time:hhmm(o.time)})):trh('valve_hint')}</p>
+          <h3 class="modal-title">${trh('runtime1_caps')}</h3><div class="modal-stats">${['today','week','month'].map(k=>`<div><strong>${formatDuration(this._state(v[k]))}</strong><small>${trh(k)}</small></div>`).join('')}</div>
+          <p class="hint">${trh('valve_demand_hint')}</p>`;
       }else if(kind==='heat-program'){
         const selectId=c.heat_schedule_entity,{entity,modes}=this._heatPreset(),current=valid(entity)?entity.attributes?.preset_mode:'';
         const options=this._select(selectId),chosen=this._state(selectId)?.state,overridden=['away','frost_guard','boost'].includes(current);
-        const modeLabels={away:'Assente',frost_guard:'Antigelo',schedule:'Programmazione',boost:'Boost'};
-        name='Riscaldamento';
-        body=`<h3 class="modal-title">PRESET</h3><div class="in-use"><span>In uso</span><strong>${esc(this._heatInUse())}</strong></div>
-          ${selectId?`<h3 class="modal-title">PROGRAMMA</h3><div class="mode-grid">${options.length?options.map(o=>mk('choose-program',o,o,o===chosen&&!overridden)).join(''):'<p class="hint">Nessun programma disponibile.</p>'}</div>`:''}
-          <h3 class="modal-title">MODALITÀ</h3>
-          ${modes.length?`<div class="mode-grid">${modes.map(m=>mk('choose-heat-preset',m,modeLabels[m]||m,m===current)).join('')}</div><p class="hint">Le modalità disponibili dipendono dall’entità termostato configurata.</p>`:`<p class="hint">Per visualizzare Assente e le altre modalità, seleziona nell’editor un’entità climate.* che esponga tali preset. I programmi select.* non includono necessariamente Assente.</p>`}`;
+        const modeLabels=m=>['away','frost_guard','schedule','boost'].includes(m)?tr('preset_'+m):m;
+        name=tr('heating');
+        body=`<h3 class="modal-title">${trh('preset_caps')}</h3><div class="in-use"><span>${trh('in_use')}</span><strong>${esc(this._heatInUse())}</strong></div>
+          ${selectId?`<h3 class="modal-title">${trh('schedule_caps')}</h3><div class="mode-grid">${options.length?options.map(o=>mk('choose-program',o,o,o===chosen&&!overridden)).join(''):`<p class="hint">${trh('no_schedule')}</p>`}</div>`:''}
+          <h3 class="modal-title">${trh('modes_caps')}</h3>
+          ${modes.length?`<div class="mode-grid">${modes.map(m=>mk('choose-heat-preset',m,modeLabels(m),m===current)).join('')}</div><p class="hint">${trh('heat_modes_hint')}</p>`:`<p class="hint">${trh('heat_modes_missing')}</p>`}`;
       }else if(kind==='ac'){
         const e=this._state(c.ac_entity),modes=valid(e)&&Array.isArray(e.attributes?.hvac_modes)?e.attributes.hvac_modes:[],opts=modes.filter(x=>x!=='off');
         const presets=valid(e)&&Array.isArray(e.attributes?.preset_modes)?e.attributes.preset_modes:[],sel=this._state(c.ac_program_entity),isOn=valid(e)&&e.state!=='off';
-        const label=m=>({cool:'Freddo',heat:'Caldo',dry:'Deum.',auto:'Auto',fan_only:'Ventola',heat_cool:'Auto caldo/freddo'})[m]||m;
-        name=`Climatizzatore · ${valid(e)?(isOn?'Acceso':'Spento'):'Non disponibile'}`;
-        body=`${opts.length?`<h3 class="modal-title">MODALITÀ</h3><div class="mode-grid g3">${opts.map(m=>`<button data-action="hvac" data-id="${esc(c.ac_entity)}" data-value="${esc(m)}" class="${e?.state===m?'active':''}" ${en}>${icon(mdiMode(m))}${esc(label(m))}</button>`).join('')}</div>`:''}
-          ${presets.length?`<h3 class="modal-title">PRESET</h3><div class="in-use"><span>In uso</span><strong>${esc(e.attributes.preset_mode||'—')}</strong></div><div class="mode-grid">${presets.map(p=>mk('choose-ac-preset',p,p,p===e.attributes.preset_mode)).join('')}</div>`:''}
-          ${c.ac_program_entity?`<h3 class="modal-title">PROGRAMMA</h3><div class="in-use"><span>In uso</span><strong>${valid(sel)?esc(sel.state):'Non disponibile'}</strong></div><div class="mode-grid">${this._select(c.ac_program_entity).map(o=>mk('choose-program',o,o,o===sel?.state)).join('')||'<p class="hint">Nessun programma disponibile.</p>'}</div>`:''}`;
+        const label=m=>['cool','heat','dry','auto','fan_only','heat_cool'].includes(m)?tr('hvac_'+m):m;
+        name=`${tr('ac')} · ${valid(e)?(isOn?tr('on'):tr('off')):tr('unavailable')}`;
+        body=`${opts.length?`<h3 class="modal-title">${trh('modes_caps')}</h3><div class="mode-grid g3">${opts.map(m=>`<button data-action="hvac" data-id="${esc(c.ac_entity)}" data-value="${esc(m)}" class="${e?.state===m?'active':''}" ${en}>${icon(mdiMode(m))}${esc(label(m))}</button>`).join('')}</div>`:''}
+          ${presets.length?`<h3 class="modal-title">${trh('preset_caps')}</h3><div class="in-use"><span>${trh('in_use')}</span><strong>${esc(e.attributes.preset_mode||'—')}</strong></div><div class="mode-grid">${presets.map(p=>mk('choose-ac-preset',p,p,p===e.attributes.preset_mode)).join('')}</div>`:''}
+          ${c.ac_program_entity?`<h3 class="modal-title">${trh('schedule_caps')}</h3><div class="in-use"><span>${trh('in_use')}</span><strong>${valid(sel)?esc(sel.state):trh('unavailable')}</strong></div><div class="mode-grid">${this._select(c.ac_program_entity).map(o=>mk('choose-program',o,o,o===sel?.state)).join('')||`<p class="hint">${trh('no_schedule')}</p>`}</div>`:''}`;
       }else return '';
-      return `<div class="backdrop" data-backdrop="1"><section class="dialog" role="dialog" aria-modal="true" aria-label="${esc(name)}"><header class="dialog-head"><strong>${esc(name)}</strong><button class="close" data-action="close" aria-label="Chiudi">${icon('close')}</button></header><div class="dialog-body">${body}${this._error?`<p class="error">${esc(this._error)}</p>`:''}</div></section></div>`;
+      return `<div class="backdrop" data-backdrop="1"><section class="dialog" role="dialog" aria-modal="true" aria-label="${esc(name)}"><header class="dialog-head"><strong>${esc(name)}</strong><button class="close" data-action="close" aria-label="${trh('close')}">${icon('close')}</button></header><div class="dialog-body">${body}${this._error?`<p class="error">${esc(this._error)}</p>`:''}</div></section></div>`;
     }
     _renderLayer(){
       if(!this._modal||typeof document==='undefined'){this._removeLayer();return;}
@@ -368,11 +527,11 @@
     _removeLayer(){if(this._layer){this._layer.remove();this._layer=null;this._layerHtml='';}}
     _currentSig(){
       const c=this._cfg,h=this._hass,keys=[c.heat_entity,c.heat_schedule_entity,c.heat_preset_entity,c.heat_activity_entity,c.ac_entity,c.ac_program_entity,c.ac_activity_entity,...Object.keys(c).filter(k=>/_(today|week|month|last|previous)$/.test(k)).map(k=>c[k]),...c.valves.flatMap(v=>[v.entity,v.activity_entity,v.today,v.week,v.month]),...c.automations.map(a=>a.entity)];
-      return JSON.stringify({c,dark:this._dark(),p:this._period,season:this._season,st:this._statTab,acc:this._accOpen,modal:this._modal,err:this._error,pending:[...this._pending],override:[...this._overrides],temps:[...this._pendingTemp],data:[...new Set(keys.filter(Boolean))].map(id=>{const e=h.states[id];return [id,e?.state,e?.attributes?.temperature,e?.attributes?.current_temperature,e?.attributes?.hvac_action,e?.attributes?.hvac_modes,e?.attributes?.options,e?.attributes?.preset_modes,e?.attributes?.preset_mode,e?.attributes?.unit_of_measurement,e?.attributes?.friendly_name]})});
+      return JSON.stringify({c,lang:LOCALE,dark:this._dark(),p:this._period,season:this._season,st:this._statTab,acc:this._accOpen,modal:this._modal,err:this._error,pending:[...this._pending],override:[...this._overrides],temps:[...this._pendingTemp],data:[...new Set(keys.filter(Boolean))].map(id=>{const e=h.states[id];return [id,e?.state,e?.attributes?.temperature,e?.attributes?.current_temperature,e?.attributes?.hvac_action,e?.attributes?.hvac_modes,e?.attributes?.options,e?.attributes?.preset_modes,e?.attributes?.preset_mode,e?.attributes?.unit_of_measurement,e?.attributes?.friendly_name]})});
     }
     _accordionTile(id,title,summary,iconName,body,tone=''){
       const open=!!this._accOpen[id];
-      return `<div class="accordion-item ${open?'is-open':''}"><button type="button" class="accordion-head" id="cc-head-${id}" data-action="toggle-accordion" data-section="${id}" aria-expanded="${open}" aria-controls="cc-panel-${id}"><span class="acc-leading ${tone}">${icon(iconName)}</span><span class="acc-label"><span class="acc-title">${esc(title)}</span><span class="acc-summary">${esc(summary)}</span></span><span class="acc-end"><span class="txt">${open?'Chiudi':'Apri'}</span>${icon(open?'chevron-up':'chevron-right')}</span></button><div class="acc-panel" id="cc-panel-${id}" role="region" aria-labelledby="cc-head-${id}" ${open?'':'hidden'}>${open?body:''}</div></div>`;
+      return `<div class="accordion-item ${open?'is-open':''}"><button type="button" class="accordion-head" id="cc-head-${id}" data-action="toggle-accordion" data-section="${id}" aria-expanded="${open}" aria-controls="cc-panel-${id}"><span class="acc-leading ${tone}">${icon(iconName)}</span><span class="acc-label"><span class="acc-title">${esc(title)}</span><span class="acc-summary">${esc(summary)}</span></span><span class="acc-end"><span class="txt">${open?trh('close'):trh('open')}</span>${icon(open?'chevron-up':'chevron-right')}</span></button><div class="acc-panel" id="cc-panel-${id}" role="region" aria-labelledby="cc-head-${id}" ${open?'':'hidden'}>${open?body:''}</div></div>`;
     }
     _render(){if(!this.isConnected||!this._hass||this._drag)return;
       const c=this._cfg;
@@ -384,14 +543,14 @@
       if(c.show_eyebrow||c.show_title)html+=`<header class="header ${c.show_eyebrow?'':'without-eyebrow'}">${c.show_eyebrow?`<div class="eyebrow">${esc(c.eyebrow)}</div>`:''}${c.show_title?`<h2 class="title">${esc(c.title)}<b>.</b></h2>`:''}</header>`;
       const heroes=[isShown(c,'heat')&&(c.heat_entity||c.heat_schedule_entity||c.heat_preset_entity)?this._heating():'',isShown(c,'ac')&&c.ac_entity?this._aircon():''].filter(Boolean);
       if(heroes.length)html+=`<div class="heroes">${heroes.join('')}</div>`;
-      if(!heroes.length&&!(isShown(c,'valves')&&c.valves.length))html+=`<p class="hint">Configura almeno un termostato, un programma, un climatizzatore o una valvola nell'editor visuale.</p>`;
+      if(!heroes.length&&!(isShown(c,'valves')&&c.valves.length))html+=`<p class="hint">${trh('empty_hint')}</p>`;
       const accordion=[];
-      if(isShown(c,'valves')&&c.valves.length)accordion.push(this._accordionTile('valves','Valvole termostatiche',`${c.valves.length} valvole configurate`,'radiator',this._accOpen.valves?this._valves():'','heat'));
+      if(isShown(c,'valves')&&c.valves.length)accordion.push(this._accordionTile('valves',tr('valves_title'),tr('valves_configured',{n:c.valves.length}),'radiator',this._accOpen.valves?this._valves():'','heat'));
       const hasT=isShown(c,'stats')&&!!this._stats(),hasS=isShown(c,'seasons')&&!!this._seasons();
-      if(hasT||hasS)accordion.push(this._accordionTile('stats','Statistiche',hasT&&hasS?'Tempi · Confronto stagionale':hasT?'Tempi di funzionamento':'Confronto stagionale','chart-bar',this._accOpen.stats?this._statsBody(hasT,hasS):'','green'));
-      if(isShown(c,'automations'))accordion.push(this._accordionTile('automations',`Automazioni associate (${c.automations.length})`,'Gestisci le automazioni Home Assistant','cog-outline',this._accOpen.automations?this._automations():'','green'));
-      if(accordion.length)html+=`<div class="accordion-list" aria-label="Sezioni espandibili">${accordion.join('')}</div>`;
-      if(!c.controls_enabled)html+='<p class="footer">Modalità sola lettura: abilita i comandi nell’editor quando hai verificato le entità.</p>';
+      if(hasT||hasS)accordion.push(this._accordionTile('stats',tr('stats'),hasT&&hasS?tr('stats_both'):hasT?tr('runtime'):tr('season_compare'),'chart-bar',this._accOpen.stats?this._statsBody(hasT,hasS):'','green'));
+      if(isShown(c,'automations'))accordion.push(this._accordionTile('automations',`${tr('linked_automations')} (${c.automations.length})`,tr('manage_automations'),'cog-outline',this._accOpen.automations?this._automations():'','green'));
+      if(accordion.length)html+=`<div class="accordion-list" aria-label="${trh('sections_aria')}">${accordion.join('')}</div>`;
+      if(!c.controls_enabled)html+=`<p class="footer">${trh('readonly_footer')}</p>`;
       if(this._error&&!this._modal)html+=`<p class="main-error" role="alert">${esc(this._error)}</p>`;
       html+='</div>';
       this.shadowRoot.innerHTML=html;
@@ -403,13 +562,13 @@
     _open(v){this._error='';this._modal=v;this._lockPage();this._sig='';this._render();this._layer?.shadowRoot.querySelector('.close')?.focus()}
     _close(){this._modal=null;this._error='';this._sig='';this._render();this._removeLayer();this._unlock()}
     _seasonCards(){const c=this._cfg,season=this._season,k=season==='winter'?'winter':'summer';
-      if((k==='winter'&&!isShown(c,'heat'))||(k==='summer'&&!isShown(c,'ac')))return `<div class="hint">Nessuna sorgente disponibile per questa modalità.</div>`;
+      if((k==='winter'&&!isShown(c,'heat'))||(k==='summer'&&!isShown(c,'ac')))return `<div class="hint">${trh('no_source')}</div>`;
       const prev=numericHours(this._state(c[`${k}_previous`]));const last=numericHours(this._state(c[`${k}_last`]));
       const forecast=prev!==null&&last!==null?(prev+last)/2:null;
-      const months=c[`${k}_months`].map(m=>MONTHS[m-1]).join(' · ')||'Nessun mese selezionato';
-      return `<div class="panel"><div class="row"><strong>${k==='winter'?'Inverno · Riscaldamento':'Estate · Climatizzatore'}</strong><span class="caption">${esc(months)}</span></div>
-        <div class="metric"><span>Stagione precedente</span><strong>${hours(prev)}</strong></div><div class="metric"><span>Ultima stagione</span><strong>${hours(last)}</strong></div>
-        <div class="metric"><span title="Scenario illustrativo: media delle ultime due stagioni, non previsione meteorologica">Scenario successivo</span><strong>${forecast!==null?`≈ ${hours(forecast)}`:'N/D'}</strong></div>
+      const months=c[`${k}_months`].map(m=>monthNames()[m-1]).join(' · ')||tr('no_months');
+      return `<div class="panel"><div class="row"><strong>${k==='winter'?trh('winter_heating'):trh('summer_ac')}</strong><span class="caption">${esc(months)}</span></div>
+        <div class="metric"><span>${trh('prev_season')}</span><strong>${hours(prev)}</strong></div><div class="metric"><span>${trh('last_season')}</span><strong>${hours(last)}</strong></div>
+        <div class="metric"><span title="${trh('next_scenario_title')}">${trh('next_scenario')}</span><strong>${forecast!==null?`≈ ${hours(forecast)}`:tr('na')}</strong></div>
         </div>`;
     }
     _outerScroll(){
@@ -431,16 +590,16 @@
     async _call(domain,service,data,target){if(!this._enabled())return;
       const key=JSON.stringify([domain,service,target]);if(this._pending.has(key))return;
       this._pending.add(key);this._error='';this._sig='';this._render();
-      try{if(!this._hass?.services?.[domain]?.[service])throw new Error(`Azione ${domain}.${service} non disponibile`);
+      try{if(!this._hass?.services?.[domain]?.[service])throw new Error(tr('action_unavailable',{action:`${domain}.${service}`}));
         await this._hass.callService(domain,service,data,target);}
-      catch(err){this._error=err?.message||'Comando non riuscito.';}
+      catch(err){this._error=err?.message||tr('cmd_failed');}
       finally{this._pending.delete(key);this._sig='';this._render();}
     }
     _actManual(i){const v=this._cfg.valves[i],e=this._state(v?.entity),t=target(e);if(t===null)return;
-      this._overrides.set(v.entity,{mode:'Manuale',time:Date.now()});return this._call('climate','set_temperature',{entity_id:v.entity,temperature:t});}
+      this._overrides.set(v.entity,{mode:'manual',time:Date.now()});return this._call('climate','set_temperature',{entity_id:v.entity,temperature:t});}
     _setTemp(id,value){
       const e=this._state(id);if(!this._enabled()||!valid(e))return;
-      if(this._cfg.valves.some(v=>v.entity===id))this._overrides.set(id,{mode:'Manuale',time:Date.now()});
+      if(this._cfg.valves.some(v=>v.entity===id))this._overrides.set(id,{mode:'manual',time:Date.now()});
       this._pendingTemp.set(id,{value,until:Date.now()+8000});memSet(id,{t:value});
       clearTimeout(this._pendTimer);this._pendTimer=setTimeout(()=>{this._sig='';this._render()},8200);
       return this._call('climate','set_temperature',{entity_id:id,temperature:value}).then(()=>{if(this._error)this._pendingTemp.delete(id)});
@@ -520,7 +679,7 @@
           if((flags&256)!==0&&this._hass?.services?.climate?.turn_on)return afterOn(this._call('climate','turn_on',{entity_id:id}));
           const mode=['cool','heat_cool','auto','heat','dry','fan_only'].find(v=>modes.includes(v));
           if(mode)return afterOn(this._call('climate','set_hvac_mode',{entity_id:id,hvac_mode:mode}));
-          this._error='Nessuna modalità di accensione supportata.';this._sig='';this._render();return;
+          this._error=tr('no_power_mode');this._sig='';this._render();return;
         }
         if(modes.includes('off'))return this._call('climate','set_hvac_mode',{entity_id:id,hvac_mode:'off'});
         if((flags&128)!==0)return this._call('climate','turn_off',{entity_id:id});
@@ -530,12 +689,12 @@
       if(a==='valve-off'){
         const v=this._cfg.valves[i],modes=this._state(v?.entity)?.attributes?.hvac_modes||[];
         if(!modes.includes('off'))return;
-        this._overrides.set(v.entity,{mode:'Spenta',time:Date.now()});return this._call('climate','set_hvac_mode',{entity_id:v.entity,hvac_mode:'off'});
+        this._overrides.set(v.entity,{mode:'off',time:Date.now()});return this._call('climate','set_hvac_mode',{entity_id:v.entity,hvac_mode:'off'});
       }
       if(a==='restore'){
         const v=this._cfg.valves[i];if(!v)return;
-        if(v.restore_method==='netatmo'){this._overrides.set(v.entity,{mode:'Programma',time:Date.now()});return this._call('netatmo','clear_temperature_setting',{}, {entity_id:v.entity});}
-        if(v.restore_method==='script'&&v.restore_script){this._overrides.set(v.entity,{mode:'Programma',time:Date.now()});return this._call('script','turn_on',{entity_id:v.restore_script});}
+        if(v.restore_method==='netatmo'){this._overrides.set(v.entity,{mode:'schedule',time:Date.now()});return this._call('netatmo','clear_temperature_setting',{}, {entity_id:v.entity});}
+        if(v.restore_method==='script'&&v.restore_script){this._overrides.set(v.entity,{mode:'schedule',time:Date.now()});return this._call('script','turn_on',{entity_id:v.restore_script});}
         return;
       }
       if(a==='choose-heat-preset'){
@@ -557,7 +716,7 @@
         const o=this._cfg.automations[i],st=this._state(o?.entity);
         if(!valid(st))return;
         const service=st.state==='on'?'turn_off':'turn_on';
-        if(service==='turn_off'&&this._cfg.confirm_automation_disable&&!confirm(`Disabilitare l'automazione “${o.name||friendly(this._hass,o.entity,o.entity)}”?`))return;
+        if(service==='turn_off'&&this._cfg.confirm_automation_disable&&!confirm(tr('confirm_disable',{name:o.name||friendly(this._hass,o.entity,o.entity)})))return;
         return this._call('automation',service,{entity_id:o.entity});
       }
     }
@@ -584,7 +743,7 @@
       this.shadowRoot.addEventListener('click',e=>this._click(e));this.shadowRoot.addEventListener('change',e=>this._change(e));}
     connectedCallback(){this._render();void this._loadSelectors()}
     setConfig(c){this._cfg=normalize(c);this._render()}
-    set hass(h){const first=!this._hass;this._hass=h;this.shadowRoot.querySelectorAll('ha-selector').forEach(el=>el.hass=h);if(first&&!this._nativeReady)this._render()}
+    set hass(h){const first=!this._hass,prev=LOCALE;this._hass=h;setLang(h);this.shadowRoot.querySelectorAll('ha-selector').forEach(el=>el.hass=h);if((first&&!this._nativeReady)||prev!==LOCALE)this._render()}
     async _loadSelectors(){if(this._selectorAttempt)return;this._selectorAttempt=true;
       try{if(!customElements.get('ha-selector')){const helper=await window.loadCardHelpers?.();await helper?.importSelector?.();}}
       catch(_){/* Local fallback editor remains functional. */}
@@ -603,44 +762,44 @@
     }
     _entity(path,label,domains,hint=''){
       const parts=path.split(':'),v=parts.length===1?this._cfg[path]:this._cfg[parts[0]]?.[+parts[1]]?.[parts[2]];
-      return `<div class="field"><label>${esc(label)}</label><div class="entityrow"><div class="entitybox" data-selector="${esc(path)}" data-domains="${domains.join(',')}">${!this._nativeReady?`<input class="input" list="cc-entities-${domains.join('-')}" data-path="${esc(path)}" value="${esc(v||'')}" placeholder="Seleziona o cerca entità">`:''}</div><button class="remove" data-clear="${esc(path)}" aria-label="Rimuovi entità" ${v?'':'disabled'}>${icon('close')}</button></div>${hint?`<div class="hint">${esc(hint)}</div>`:''}</div>`;
+      return `<div class="field"><label>${esc(label)}</label><div class="entityrow"><div class="entitybox" data-selector="${esc(path)}" data-domains="${domains.join(',')}">${!this._nativeReady?`<input class="input" list="cc-entities-${domains.join('-')}" data-path="${esc(path)}" value="${esc(v||'')}" placeholder="${trh('entity_placeholder')}">`:''}</div><button class="remove" data-clear="${esc(path)}" aria-label="${trh('remove_entity')}" ${v?'':'disabled'}>${icon('close')}</button></div>${hint?`<div class="hint">${esc(hint)}</div>`:''}</div>`;
     }
     _select(path,label,choices,hint=''){
       const parts=path.split(':'),val=parts.length===1?this._cfg[path]:this._cfg[parts[0]]?.[+parts[1]]?.[parts[2]];
       return `<div class="field"><label>${esc(label)}</label><select class="input" data-path="${esc(path)}">${choices.map(([v,t])=>`<option value="${esc(v)}" ${v===val?'selected':''}>${esc(t)}</option>`).join('')}</select>${hint?`<div class="hint">${esc(hint)}</div>`:''}</div>`;
     }
     _check(path,label,hint=''){const val=this._cfg[path];return `<label class="check"><span>${esc(label)}${hint?`<small style="display:block;color:var(--secondary-text-color);margin-top:4px">${esc(hint)}</small>`:''}</span><input type="checkbox" data-check="${esc(path)}" ${val?'checked':''}></label>`}
-    _nav(){return `<div class="tabs">${[['devices','Dispositivi'],['stats','Statistiche'],['automations','Automazioni'],['appearance','Aspetto'],['advanced','Avanzate']].map(([v,t])=>`<button data-tab="${v}" class="${this._tab===v?'active':''}">${t}</button>`).join('')}</div>`;}
+    _nav(){return `<div class="tabs">${['devices','stats','automations','appearance','advanced'].map(v=>`<button data-tab="${v}" class="${this._tab===v?'active':''}">${trh('tab_'+v)}</button>`).join('')}</div>`;}
     _devices(){const c=this._cfg;
-      let text=`<h3>Dispositivi</h3><p class="note">Scegli le entità realmente presenti in Home Assistant. Puoi rimuoverle singolarmente.</p><div class="subtabs">${[['heat','Riscaldamento'],['ac','Climatizzatore'],['valves','Valvole']].map(([v,t])=>`<button data-sub="${v}" class="${v===this._sub?'active':''}">${t}</button>`).join('')}</div>`;
-      if(this._sub==='heat')text+=this._entity('heat_schedule_entity','Programmi del termostato · select.*',['select'],'Seleziona qui l’entità dei programmi, anche se non hai un termostato climate.*. Le opzioni vengono lette da Home Assistant.')+this._entity('heat_preset_entity','Modalità termostato (es. Assente) · climate.*',['climate'],'Facoltativo. Scegli un’entità dello stesso impianto che esponga i preset (away, schedule, frost_guard). I comandi possono interessare l’intera abitazione, secondo l’integrazione.')+this._entity('heat_entity','Termostato temperatura (facoltativo) · climate.*',['climate'],'Se presente, mostra temperatura ambiente, setpoint e stato HVAC. Non inserire qui un’entità select.*.')+this._entity('heat_activity_entity','Stato riscaldamento / richiesta calore (facoltativo)',['binary_sensor','switch','input_boolean','sensor'],'Non rappresenta automaticamente l’accensione della caldaia.');
-      if(this._sub==='ac')text+=this._entity('ac_entity','Climatizzatore',['climate'])+this._entity('ac_program_entity','Programma climatizzatore (facoltativo)',['select'],'Seleziona solo una vera entità di programma, se esiste.')+this._entity('ac_activity_entity','Sensore funzionamento climatizzatore (facoltativo)',['binary_sensor','switch','input_boolean','sensor']);
-      if(this._sub==='valves')text+=c.valves.map((v,i)=>`<div class="block"><div class="blockhead"><strong>Valvola ${i+1}</strong><button class="delete" data-remove="valves:${i}">${icon('delete-outline')} Rimuovi</button></div>
-        ${this._entity(`valves:${i}:entity`,'Entità valvola',['climate'])}
-        ${this._text(`valves:${i}:name`,'Nome nella card (facoltativo)','Se vuoto, viene usato il nome assegnato in Home Assistant.')}
-        ${this._entity(`valves:${i}:activity_entity`,'Richiesta calore (facoltativo)',['binary_sensor','sensor','switch','input_boolean'])}
-        ${this._select(`valves:${i}:restore_method`,'Ripristina programma',[['none','Non configurato'],['netatmo','Azione Netatmo (per dispositivi compatibili)'],['script','Script Home Assistant personalizzato']], 'Seleziona esplicitamente il metodo compatibile con il tuo impianto.')}
-        ${v.restore_method==='script'?this._entity(`valves:${i}:restore_script`,'Script ripristino',['script']):''}
-        ${this._entity(`valves:${i}:today`,'Tempo oggi',['sensor'])}${this._entity(`valves:${i}:week`,'Tempo settimana',['sensor'])}${this._entity(`valves:${i}:month`,'Tempo mese',['sensor'])}</div>`).join('')+`<button class="add" data-add="valves">${icon('plus')} Aggiungi valvola</button>`;
+      let text=`<h3>${trh('tab_devices')}</h3><p class="note">${trh('devices_note')}</p><div class="subtabs">${[['heat',trh('heating')],['ac',trh('ac')],['valves',trh('valves')]].map(([v,t])=>`<button data-sub="${v}" class="${v===this._sub?'active':''}">${t}</button>`).join('')}</div>`;
+      if(this._sub==='heat')text+=this._entity('heat_schedule_entity',tr('heat_schedule_label'),['select'],tr('heat_schedule_hint'))+this._entity('heat_preset_entity',tr('heat_preset_label'),['climate'],tr('heat_preset_hint'))+this._entity('heat_entity',tr('heat_entity_label'),['climate'],tr('heat_entity_hint'))+this._entity('heat_activity_entity',tr('heat_activity_label'),['binary_sensor','switch','input_boolean','sensor'],tr('heat_activity_hint'));
+      if(this._sub==='ac')text+=this._entity('ac_entity',tr('ac'),['climate'])+this._entity('ac_program_entity',tr('ac_program_label'),['select'],tr('ac_program_hint'))+this._entity('ac_activity_entity',tr('ac_activity_label'),['binary_sensor','switch','input_boolean','sensor']);
+      if(this._sub==='valves')text+=c.valves.map((v,i)=>`<div class="block"><div class="blockhead"><strong>${trh('valve_n',{n:i+1})}</strong><button class="delete" data-remove="valves:${i}">${icon('delete-outline')} ${trh('remove')}</button></div>
+        ${this._entity(`valves:${i}:entity`,tr('valve_entity'),['climate'])}
+        ${this._text(`valves:${i}:name`,tr('valve_name'),tr('valve_name_hint'))}
+        ${this._entity(`valves:${i}:activity_entity`,tr('valve_activity'),['binary_sensor','sensor','switch','input_boolean'])}
+        ${this._select(`valves:${i}:restore_method`,tr('restore_label'),[['none',tr('restore_none')],['netatmo',tr('restore_netatmo')],['script',tr('restore_script')]], tr('restore_hint'))}
+        ${v.restore_method==='script'?this._entity(`valves:${i}:restore_script`,tr('restore_script_label'),['script']):''}
+        ${this._entity(`valves:${i}:today`,tr('time_today'),['sensor'])}${this._entity(`valves:${i}:week`,tr('time_week'),['sensor'])}${this._entity(`valves:${i}:month`,tr('time_month'),['sensor'])}</div>`).join('')+`<button class="add" data-add="valves">${icon('plus')} ${trh('add_valve')}</button>`;
       return text;
     }
-    _stats(){let out=`<h3>Tempi di funzionamento</h3><p class="note">I sensori devono misurare la durata effettiva, con unità di tempo esplicita (h, min o s). Nessun valore viene inventato.</p>`;
-      for(const [k,label] of [['heat','Riscaldamento'],['ac','Climatizzatore']]){
-        out+=`<div class="block"><strong>${label}</strong>${[['today','Oggi'],['week','Settimana'],['month','Mese']].map(([p,n])=>this._entity(`${k}_${p}`,`Tempo ${n.toLowerCase()}`,['sensor'])).join('')}</div>`;
+    _stats(){let out=`<h3>${trh('runtime')}</h3><p class="note">${trh('runtime_note')}</p>`;
+      for(const [k,label] of [['heat',trh('heating')],['ac',trh('ac')]]){
+        out+=`<div class="block"><strong>${label}</strong>${['today','week','month'].map(p=>this._entity(`${k}_${p}`,tr('time_'+p),['sensor'])).join('')}</div>`;
       }
-      out+=`<h3>Confronti stagionali</h3><p class="note">Scegli i mesi di Inverno ed Estate. Configura sensori aggregati storici se disponibili.</p><div class="subtabs">${[['winter','Inverno'],['summer','Estate']].map(([v,n])=>`<button data-season-tab="${v}" class="${this._season===v?'active':''}">${n}</button>`).join('')}</div>`;
-      const k=this._season;out+=`<div class="months">${MONTHS.map((m,i)=>`<button data-month="${i+1}" data-season="${k}" class="month ${this._cfg[`${k}_months`].includes(i+1)?'on':''}">${m}</button>`).join('')}</div>`;
-      out+=this._entity(`${k}_previous`,'Ore stagione precedente',['sensor'])+this._entity(`${k}_last`,'Ore ultima stagione',['sensor']);
-      out+='<p class="note">Scenario successivo: calcolato solo se entrambi i dati sono disponibili. La scelta dei mesi definisce il periodo; per le statistiche storiche occorrono comunque dati già aggregati per quei mesi.</p>';
+      out+=`<h3>${trh('seasons_title')}</h3><p class="note">${trh('seasons_note')}</p><div class="subtabs">${[['winter',trh('winter')],['summer',trh('summer')]].map(([v,n])=>`<button data-season-tab="${v}" class="${this._season===v?'active':''}">${n}</button>`).join('')}</div>`;
+      const k=this._season;out+=`<div class="months">${monthNames().map((m,i)=>`<button data-month="${i+1}" data-season="${k}" class="month ${this._cfg[`${k}_months`].includes(i+1)?'on':''}">${m}</button>`).join('')}</div>`;
+      out+=this._entity(`${k}_previous`,tr('hours_prev'),['sensor'])+this._entity(`${k}_last`,tr('hours_last'),['sensor']);
+      out+=`<p class="note">${trh('scenario_note')}</p>`;
       return out;
     }
-    _automations(){const c=this._cfg;return `<h3>Automazioni associate</h3><p class="note">Aggiungi liberamente le automazioni. Se il nome personalizzato è vuoto, la card usa il nome originale di Home Assistant.</p>${c.automations.map((a,i)=>`<div class="block"><div class="blockhead"><strong>${esc(a.name||friendly(this._hass,a.entity,`Automazione ${i+1}`))}</strong><button class="delete" data-remove="automations:${i}">${icon('delete-outline')} Rimuovi</button></div>${this._entity(`automations:${i}:entity`,'Entità automazione',['automation'])}${this._text(`automations:${i}:name`,'Nome personalizzato (facoltativo)','Lascia vuoto per usare il friendly_name di Home Assistant.')}</div>`).join('')}<button class="add" data-add="automations">${icon('plus')} Aggiungi automazione</button>`}
-    _appearance(){return `<h3>Identità Edera</h3>${this._check('show_eyebrow','Mostra intestazione superiore','Se disattivata rimane visibile soltanto il titolo principale con il punto.')}${this._cfg.show_eyebrow?this._text('eyebrow','Testo intestazione superiore'):''}${this._check('show_title','Mostra titolo card','Se disattivata il titolo e il punto verde non vengono mostrati.')}${this._cfg.show_title?this._text('title','Titolo card'):''}${this._select('theme_mode','Tema',[['auto','Automatico · Home Assistant'],['light','Edera Light'],['dark','Graphite Dark']])}
-      ${this._select('layout','Modalità della card',[['complete','Completa'],['heat','Solo riscaldamento'],['ac','Solo climatizzatore'],['valves','Solo valvole'],['custom','Personalizzata']])}
-      ${this._select('temperature_control','Regolazione temperatura',[['arc','Arco con − / +'],['ring','Anello con − / +']])}
-      <h3>Sezioni visibili</h3>${[['heat','Riscaldamento'],['ac','Climatizzatore'],['valves','Valvole'],['stats','Statistiche · Tempi di funzionamento'],['seasons','Statistiche · Confronto stagionale'],['automations','Automazioni associate']].map(([k,n])=>this._check(`show_${k}`,n)).join('')}<p class="note">Le modalità Solo riscaldamento, Solo climatizzatore e Solo valvole nascondono automaticamente i dispositivi non pertinenti.</p>`;
+    _automations(){const c=this._cfg;return `<h3>${trh('linked_automations')}</h3><p class="note">${trh('aut_note')}</p>${c.automations.map((a,i)=>`<div class="block"><div class="blockhead"><strong>${esc(a.name||friendly(this._hass,a.entity,tr('automation_n',{n:i+1})))}</strong><button class="delete" data-remove="automations:${i}">${icon('delete-outline')} ${trh('remove')}</button></div>${this._entity(`automations:${i}:entity`,tr('aut_entity'),['automation'])}${this._text(`automations:${i}:name`,tr('aut_name'),tr('aut_name_hint'))}</div>`).join('')}<button class="add" data-add="automations">${icon('plus')} ${trh('add_automation')}</button>`}
+    _appearance(){return `<h3>${trh('identity')}</h3>${this._check('show_eyebrow',tr('show_eyebrow_label'),tr('show_eyebrow_hint'))}${this._cfg.show_eyebrow?this._text('eyebrow',tr('eyebrow_text')):''}${this._check('show_title',tr('show_title_label'),tr('show_title_hint'))}${this._cfg.show_title?this._text('title',tr('title_label')):''}${this._select('theme_mode',tr('theme'),[['auto',tr('theme_auto')],['light','Edera Light'],['dark','Graphite Dark']])}
+      ${this._select('layout',tr('layout_label'),['complete','heat','ac','valves','custom'].map(v=>[v,tr('layout_'+v)]))}
+      ${this._select('temperature_control',tr('temp_control'),[['arc',tr('ctrl_arc')],['ring',tr('ctrl_ring')]])}
+      <h3>${trh('visible_sections')}</h3>${['heat','ac','valves','stats','seasons','automations'].map(k=>this._check(`show_${k}`,tr('show_'+k))).join('')}<p class="note">${trh('layout_note')}</p>`;
     }
-    _advanced(){return `<h3>Controlli e sicurezza</h3>${this._check('controls_enabled','Abilita comandi reali','Attivo per impostazione predefinita. Disattivalo per usare la card in sola lettura.')}${this._check('confirm_automation_disable','Conferma prima di disabilitare automazioni')}<p class="note">La card non concede permessi aggiuntivi rispetto a Home Assistant. Il ripristino del programma delle valvole usa il metodo configurato individualmente; se assente, il pulsante non invia comandi.</p>`}
+    _advanced(){return `<h3>${trh('controls_title')}</h3>${this._check('controls_enabled',tr('controls_enabled_label'),tr('controls_enabled_hint'))}${this._check('confirm_automation_disable',tr('confirm_disable_label'))}<p class="note">${trh('advanced_note')}</p>`}
     _click(e){const t=e.target.closest('button');if(!t)return;
       if(t.dataset.tab){this._tab=t.dataset.tab;this._render();return;}
       if(t.dataset.sub){this._sub=t.dataset.sub;this._render();return;}
@@ -683,5 +842,5 @@
   if(!customElements.get(TAG))customElements.define(TAG,ClimateControlCard);
   if(!customElements.get(EDITOR))customElements.define(EDITOR,ClimateControlEditor);
   window.customCards=window.customCards||[];
-  if(!window.customCards.some(x=>x.type===TAG))window.customCards.push({type:TAG,name:'Climate Control Card',description:'Termostati, climatizzatori, valvole, programmi e statistiche nello stile Edera.',preview:true});
+  if(!window.customCards.some(x=>x.type===TAG))window.customCards.push({type:TAG,name:'Climate Control Card',description:tr('card_description'),preview:true});
 })();
