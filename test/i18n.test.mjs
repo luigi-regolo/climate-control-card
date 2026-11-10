@@ -10,6 +10,27 @@ const end = src.indexOf('  const hhmm=');
 assert.ok(escLine && start > 0 && end > start, 'i18n block not found');
 const load = () => new Function(`${escLine}\n${src.slice(start, end)}\nreturn {I18N,setLang,tr,trh,monthNames,get LANG(){return LANG},get LOCALE(){return LOCALE}};`)();
 
+// Card code without the dictionary block, so key lookups only see real usages.
+const code = src.slice(0, start) + src.slice(end);
+const literalKeys = [...new Set([...code.matchAll(/\btrh?\(\s*['"`](\w+)['"`]\s*[,)]/g)].map(m => m[1]))];
+// tr('hvac_'+m): the suffix comes from a runtime value, only the prefix is visible.
+const dynamicPrefixes = [...new Set([...code.matchAll(/\btrh?\(\s*['"`](\w+)['"`]\s*\+/g)].map(m => m[1]))];
+
+test('every tr()/trh() key used in the card exists in the dictionary', () => {
+  const { I18N } = load();
+  assert.ok(literalKeys.length > 100, `key scan found only ${literalKeys.length} keys`);
+  assert.deepEqual(literalKeys.filter(k => !(k in I18N.it)), []);
+  for (const p of dynamicPrefixes)
+    assert.ok(Object.keys(I18N.it).some(k => k.startsWith(p)), `no keys for prefix ${p}`);
+});
+
+test('no dead keys in the dictionary', () => {
+  const { I18N } = load();
+  // Keys passed as variables (trh(k) over ['today','week','month']) still appear as string literals.
+  const used = k => dynamicPrefixes.some(p => k.startsWith(p)) || new RegExp(`['"\`]${k}['"\`]`).test(code);
+  assert.deepEqual(Object.keys(I18N.it).filter(k => !used(k)), []);
+});
+
 test('every language has the same keys as Italian', () => {
   const { I18N } = load();
   const it = Object.keys(I18N.it).sort();
