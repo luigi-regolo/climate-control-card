@@ -9,7 +9,7 @@
 
 **Climate Control Card** is a responsive climate dashboard card for Home Assistant, bringing thermostats, air conditioners, radiator valves, schedules, operating-time information, and automations into a single configurable interface.
 
-Its design follows the Edera Light and Graphite Dark styles. The card works with entities and actions provided by Home Assistant and does not require a dedicated account, paid API, telemetry service, or external JavaScript library.
+Its design follows the Edera Light and Graphite Dark styles. The interface is available in Italian, English, German and French. The card works with entities and actions provided by Home Assistant and does not require a dedicated account, paid API, telemetry service, or external JavaScript library.
 
 ## Preview
 
@@ -17,24 +17,30 @@ Its design follows the Edera Light and Graphite Dark styles. The card works with
 | --- | --- |
 | ![Climate Control Card in Light mode](assets/climate-control-card-light.png) | ![Climate Control Card in Dark mode](assets/climate-control-card-dark.png) |
 
-![Climate Control Card with radiator valves and operating times expanded, Dark mode](assets/climate-control-card-details-dark.png)
+![Climate Control Card with the Valves section open, Dark mode](assets/climate-control-card-details-dark.png)
 
-![Climate Control Card Preset dialog for the air conditioner, Light mode](assets/climate-control-card-popup-light.png)
+| Phone popup | Tablet and desktop popup |
+| --- | --- |
+| ![Climate Control Card heating Preset popup on a phone, Light mode](assets/climate-control-card-popup-light.png) | ![Climate Control Card valve popup on a tablet or desktop, Dark mode](assets/climate-control-card-popup-wide-dark.png) |
 
-*Previews use fictional demo data. Displayed values and available controls depend on the configured Home Assistant entities and theme. The interface text is currently in Italian.*
+![Climate Control Card in Italian, English, German and French](assets/climate-control-card-languages.png)
+
+*Previews use fictional demo data, including the four interface languages (Italian, English, German and French). Displayed values and available controls depend on the configured Home Assistant entities and theme.*
 
 ## Features
 
 - **Modular layout:** Show heating, air conditioning, individual valves, or a custom combination of sections.
-- **Climate control:** Display the room temperature and adjust the supported setpoint with a draggable arc (default) or a ring with − and + buttons. Turn the air conditioner on or off from its status badge, and choose available HVAC modes and presets from the **Preset** dialog.
+- **Section bar:** Valves, Statistics and Automations appear as compact tiles in a single row, each with a short status line. Tap a tile to open that section below the bar; only one section is open at a time.
+- **Climate control:** Display the room temperature and adjust the supported setpoint with a draggable arc (default) or a ring with − and + buttons. Turn the air conditioner on or off from its status badge, and choose available HVAC modes and presets from the **Preset** popup.
 - **Last values remembered:** The last set temperature and the last air-conditioner mode are kept in the browser, so the card can show them and restore them when the air conditioner is turned back on. Values reported by Home Assistant always take precedence.
 - **Thermostat schedules:** View and choose the actual options exposed by a configured `select.*` entity, without predefined schedule names.
 - **Individual valves:** Adjust target temperatures, turn valves off where supported, and restore scheduled operation when a compatible restoration method is configured.
 - **Operating-time summaries:** Display today, this week, and this month using the configured duration sensors for heating, air conditioning, and individual valves.
 - **Seasonal comparisons:** Configure winter and summer months and compare available historical heating or cooling totals. An optional future scenario is clearly labeled as illustrative.
 - **Automations:** Add any number of existing `automation.*` entities, enable or disable them, and optionally assign display names. Home Assistant's friendly name is used when no custom name is provided.
-- **Visual editor:** Find, select, replace, or remove entities using Home Assistant selectors; customize displayed sections, the card name and title (each can be hidden), the temperature control style, and appearance.
-- **Edera appearance:** Automatic, Light, and Graphite Dark modes, native Home Assistant Material Design Icons, compact detail dialogs, and layouts optimized for phones, tablets, and desktops.
+- **Four languages:** Italian, English, German and French. The language follows your Home Assistant profile (English when yours is not available) or can be set in the editor.
+- **Visual editor:** Three tabs (Climate, Modules, Appearance). Find, select, replace, or remove entities using Home Assistant selectors and turn each module on or off.
+- **Edera appearance:** Automatic, Light, and Graphite Dark modes, native Home Assistant Material Design Icons, and layouts optimized for phones, tablets, and desktops. Popups keep a fixed height: tall and narrow on phones, wide with content in columns on tablets and desktops.
 
 Available commands depend on the configured integration and device capabilities. A target temperature does not, by itself, confirm that a physical valve is open or that a heat source is running. Information that is not available is not estimated.
 
@@ -65,15 +71,19 @@ Install Climate Control Card directly from the default Marketplace catalog in Ho
 
 ### Visual editor
 
-The editor provides **Devices**, **Statistics**, **Automations**, **Appearance**, and **Advanced** sections. Select the entities that already exist in your Home Assistant installation; no YAML is required for normal setup.
+The editor has three tabs. Select the entities that already exist in your Home Assistant installation; no YAML is required for normal setup.
 
-- **Devices:** Select the thermostat, air conditioner, optional schedule selectors, and individual radiator valves. Add, remove, or rename configured valves.
-- **Statistics:** Select the duration sensors for each period and configure winter/summer months and historical seasonal totals.
-- **Automations:** Add or remove existing automations. Leave the custom name blank to display its Home Assistant name.
-- **Appearance:** Show or hide the upper card name and the card title, choose the Edera theme, visible sections, and the temperature control style (arc or ring).
-- **Advanced:** Review optional controls and turn real commands off if you want a read-only card.
+- **Climate:** Heating and air conditioner, each with a **Show on the card** switch and its entities (thermostat, schedule selector, presets entity, optional activity sensors). This tab also contains the switch for real commands.
+- **Modules:** Thermostatic valves, Run times, Season comparisons and Linked automations. Each module has a **Show on the card** switch; its settings appear when it is on. Add, remove, or rename valves and automations here.
+- **Appearance:** Upper label and title (each can be hidden), theme, language, card mode, and temperature control style (arc or ring).
 
-Real commands are **enabled by default**. Turn them off in the editor (or set `controls_enabled: false`) to use the card as read-only. YAML configurations created before this version that do not contain `controls_enabled` will start sending commands after the update. The card uses Home Assistant actions and permissions; it does not bypass device or platform safeguards.
+Real commands are **enabled by default**. Turn them off in the **Climate** tab to use the card as read-only. The card uses Home Assistant actions and permissions; it does not bypass device or platform safeguards.
+
+### Language
+
+The card is available in Italian, English, German and French. By default it follows the language of the Home Assistant user profile and uses English when that language is not available. To force a language, choose it in the **Appearance** tab or set the `language` option.
+
+Entity names, schedule options and other texts that come from Home Assistant are shown as they are.
 
 ### Valve controls and schedules
 
@@ -85,7 +95,7 @@ Thermostat schedules and air-conditioning programs or presets are shown only whe
 
 ### Duration and seasonal statistics
 
-Duration displays require compatible `sensor.*` entities providing hours, minutes, seconds, or a supported duration format. Missing data is shown as **N/D** rather than calculated from a temperature target or valve count.
+Duration displays require compatible `sensor.*` entities providing hours, minutes, seconds, or a supported duration format. Missing data is shown as not available (for example **N/A** in English) rather than calculated from a temperature target or valve count.
 
 The selected winter and summer months define the intended comparison periods. Historical sensors must already provide the relevant seasonal totals; changing the selected months does not recalculate or recreate historical data.
 
